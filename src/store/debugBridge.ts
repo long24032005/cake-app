@@ -27,6 +27,7 @@
  */
 
 import { useAppStore } from './useAppStore';
+import { VIOLATION_THRESHOLDS } from '../config';
 
 export interface CakeDebugBridge {
   runDailyJob: (days?: number) => void;
@@ -143,7 +144,6 @@ export function installDebugBridge(): void {
         { r: 0.9,  expected: '75% giữ (mất 25%)' },
         { r: 1.0,  expected: '75% giữ (mất 25%) ← edge case r=1.0' },
       ];
-      const { VIOLATION_THRESHOLDS } = require('../config') as typeof import('../config');
       const sorted = [...VIOLATION_THRESHOLDS].sort((a: any, b: any) => b.minR - a.minR);
       for (const c of cases) {
         const t = sorted.find((th: any) => c.r >= th.minR) ?? sorted[sorted.length - 1];

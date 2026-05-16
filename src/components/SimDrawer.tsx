@@ -6,7 +6,9 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAppStore } from '../store/useAppStore';
-import { ALL_MILESTONES, ROUND_COMPLETE_THRESHOLD } from '../config';
+import { ALL_MILESTONES, ROUND_COMPLETE_THRESHOLD, LOCK_CYCLE_DAYS } from '../config';
+import { toISODate, addDays } from '../engine/pointEngine';
+import type { PetForm } from '../types';
 
 // ── Sub-UI helpers ────────────────────────────────────────
 const SH = ({ t }: { t: string }) => (
@@ -86,8 +88,6 @@ function S7Scenarios() {
         store.hardReset();
         setTimeout(() => {
           const { addBook } = useAppStore.getState();
-          const { toISODate, addDays } = require('../engine/pointEngine') as typeof import('../engine/pointEngine');
-          const { LOCK_CYCLE_DAYS } = require('../config') as typeof import('../config');
           const today = toISODate(new Date());
           addBook({ bookId:`book_s1_${Date.now()}`, bookType:'standard', status:'active', principalAmount:2_000_000, currentBalance:2_000_000, interestRate:7.2, termMonths:6, startDate:today, maturityDate:addDays(today,180),
             pointTracking:{ balanceHistory:[{date:today,balance:2_000_000}], lockedPoints:0, runningPoints:0, commitmentBonusPoints:0, lockCycleDays:LOCK_CYCLE_DAYS, lastLockDate:today, nextLockDate:addDays(today,LOCK_CYCLE_DAYS), violationRatio:null } });

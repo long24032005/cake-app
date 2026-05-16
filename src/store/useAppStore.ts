@@ -29,6 +29,7 @@ import {
 } from '../engine/pointEngine';
 import {
   processViolation,
+  processPartialWithdrawal,
 } from '../engine/violationEngine';
 import {
   checkMilestones,
@@ -89,6 +90,9 @@ export interface AppState {
 
   /** B3-1: Giả lập vi phạm (rút trước hạn) */
   violateBook: (bookId: string, violationType?: 'early_withdrawal' | 'plan_stopped') => void;
+
+  /** B3-2: Rút một phần tiền (Cơ chế rút 90%) */
+  partialWithdraw: (bookId: string, amount: number) => void;
 
   // ── B4 Engine Actions ────────────────────────────────────
 
@@ -218,6 +222,12 @@ export const useAppStore = create<AppState>()(
       violateBook: (bookId, violationType = 'early_withdrawal') => {
         const { user, simDate } = get();
         const next = processViolation(user, bookId, violationType, simDate);
+        set({ user: next });
+      },
+
+      partialWithdraw: (bookId, amount) => {
+        const { user, simDate } = get();
+        const next = processPartialWithdrawal(user, bookId, amount, simDate);
         set({ user: next });
       },
 

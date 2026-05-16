@@ -18,6 +18,7 @@ interface PetDisplayProps {
 
 // Màu fill theo form (spec B5 stage description)
 const FORM_COLOR: Record<PetForm, string> = {
+  egg: '#F0F0F0',
   baby: '#FFB3D9',
   teen: '#FF80C0',
   adult: '#FF2D8C',
@@ -26,6 +27,7 @@ const FORM_COLOR: Record<PetForm, string> = {
 };
 
 const FORM_STROKE: Record<PetForm, string> = {
+  egg: '#CCCCCC',
   baby: '#FF2D8C',
   teen: '#FF2D8C',
   adult: '#C21A7A',

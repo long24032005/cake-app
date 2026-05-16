@@ -12,6 +12,7 @@
 
 /** Các dạng hình thái của Gato (spec B5) */
 export type PetForm =
+  | 'egg'      // Trứng chưa nở
   | 'baby'     // Gato nhỏ, trắng, mắt to
   | 'teen'     // Gato có hình dạng rõ hơn
   | 'adult'    // Gato đầy đủ như hình mascot chính thức

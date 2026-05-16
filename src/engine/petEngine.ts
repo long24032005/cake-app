@@ -22,6 +22,7 @@ import { checkMilestones } from './milestoneEngine';
  */
 export function getPetNextForm(currentForm: PetForm, _round: number): PetForm {
   const mapping: Record<PetForm, PetForm> = {
+    egg:      'baby',
     baby:     'teen',
     teen:     'adult',
     adult:    'reborn_1',
