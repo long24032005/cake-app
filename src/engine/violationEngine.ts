@@ -4,7 +4,7 @@
  */
 
 import { VIOLATION_THRESHOLDS } from '../config';
-import type { SavingsBook, User } from '../types';
+import type { User } from '../types';
 import { daysBetween, toISODate } from './pointEngine';
 
 // ─────────────────────────────────────────────────────────────

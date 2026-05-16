@@ -241,8 +241,8 @@ function InventoryCard({
         <div style={{ fontSize: 13, fontWeight: 800, color: '#F5A623', textAlign: 'center' }}>
           {(item.value ?? 0).toLocaleString('vi-VN')}đ
         </div>
-        <div style={{ fontSize: 9, color: 'var(--color-text-secondary)' }}>
-          HSD: {item.expiresAt ? formatDate(item.expiresAt) : 'Vô thời hạn'}
+        <div style={{ fontSize: 10, color: 'var(--color-text-secondary)', marginTop: 4 }}>
+          Đã nhận: {item.receivedAt ? new Date(item.receivedAt).toLocaleDateString('vi-VN') : '---'}
         </div>
       </div>
     );
@@ -288,7 +288,7 @@ function InventoryCard({
         {label || item.type}
       </div>
       <div style={{ fontSize: 9, color: 'var(--color-text-secondary)', marginTop: 'auto' }}>
-        {formatDate(item.acquiredAt || item.receivedAt)}
+        {formatDate(item.receivedAt)}
       </div>
     </div>
   );

@@ -10,7 +10,7 @@ import {
   type AnyMilestone,
   type LargeMilestone,
 } from '../config';
-import type { InventoryItem, User } from '../types';
+import type { User } from '../types';
 import { toISODate } from './pointEngine';
 
 // ─────────────────────────────────────────────────────────────

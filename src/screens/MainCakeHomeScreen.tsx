@@ -1,7 +1,7 @@
 /**
  * MainCakeHomeScreen — The realistic fake Cake App home screen
  */
-import { motion } from 'framer-motion';
+import { useAppStore } from '../store/useAppStore';
 
 export function MainCakeHomeScreen({ onGoToSavings }: { onGoToSavings: () => void }) {
   return (

@@ -5,7 +5,6 @@
 
 import { LARGE_MILESTONES } from '../config';
 import type { PetForm, User } from '../types';
-import { checkMilestones } from './milestoneEngine';
 
 // ─────────────────────────────────────────────────────────────
 // B5 — Hàm 1: getPetNextForm

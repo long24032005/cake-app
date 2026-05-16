@@ -5,7 +5,7 @@
  * - Nếu có blind bag: animation flip card reveal
  * - Nút "Mở quà" và "Đóng" + "Xem kho đồ"
  */
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { useMemo, useState } from 'react';
 import type { AnyMilestone } from '../config';
 

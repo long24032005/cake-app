@@ -63,11 +63,9 @@ export function PetDisplay({
 }: PetDisplayProps) {
   const [showMoodPopup, setShowMoodPopup] = useState(false);
   const dim = size === 'large' ? 200 : 80;
-  const scale = dim / 200;
 
   const fillColor = FORM_COLOR[form];
   const strokeColor = FORM_STROKE[form];
-  const ptsLeft = Math.max(0, roundCompleteThreshold - progressPoints);
 
   // Idle animation: mood sleeping → breathe, else → float
   const idleAnim =

@@ -2,9 +2,8 @@
  * CakeSavingsScreen — Tiết kiệm tab in Main Cake App
  */
 import { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { useAppStore } from '../store/useAppStore';
-import { SavingsBookCard } from '../components/SavingsBookCard';
 import { GatoEduModal } from '../components/GatoEduModal';
 
 // Gato Egg Widget
