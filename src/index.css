@@ -1,0 +1,173 @@
+@import "tailwindcss";
+
+/* ── Google Fonts ────────────────────────────────────────── */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+/* ── CSS Custom Properties (theme tokens) ───────────────── */
+:root {
+  /* Backgrounds */
+  --color-bg-app:          #0D0B1F;
+  --color-bg-card:         #1A1635;
+  --color-bg-card-border:  #2D2850;
+
+  /* Brand */
+  --color-primary-pink:    #FF2D8C;
+  --color-secondary-pink:  #FF80C0;
+
+  /* Text */
+  --color-text-primary:    #FFFFFF;
+  --color-text-secondary:  #9B96C8;
+  --color-text-green:      #4ECDA4;
+  --color-text-blue:       #5BC8F5;
+
+  /* Button */
+  --color-btn-disabled:    #3D3870;
+  --gradient-btn-primary:  linear-gradient(135deg, #FF2D8C, #C21A7A);
+
+  /* Nav */
+  --color-nav-active:      #FF2D8C;
+  --color-nav-inactive:    #9B96C8;
+  --color-nav-bg:          #1A1635;
+
+  /* Radius */
+  --radius-btn:    24px;
+  --radius-card:   16px;
+  --radius-chip:   12px;
+}
+
+/* ── Global Reset ────────────────────────────────────────── */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body, #root {
+  height: 100%;
+  width: 100%;
+  overflow: hidden; /* app shell, tab content scrolls internally */
+}
+
+body {
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  background-color: var(--color-bg-app);
+  color: var(--color-text-primary);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ── App Shell ───────────────────────────────────────────── */
+#root {
+  display: flex;
+  flex-direction: column;
+  max-width: 430px; /* mobile-first, centered on desktop */
+  margin: 0 auto;
+  position: relative;
+}
+
+/* ── Scrollable page content ─────────────────────────────── */
+.page-content {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding-bottom: 80px; /* space for bottom nav */
+  scrollbar-width: none;
+}
+.page-content::-webkit-scrollbar { display: none; }
+
+/* ── Bottom Navigation Bar ───────────────────────────────── */
+.bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100%;
+  max-width: 430px;
+  height: 72px;
+  background: var(--color-nav-bg);
+  border-top: 1px solid var(--color-bg-card-border);
+  display: flex;
+  align-items: stretch;
+  z-index: 100;
+  /* Subtle frosted effect */
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.nav-tab {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  padding: 8px 0 10px;
+  position: relative;
+  transition: transform 0.15s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.nav-tab:active {
+  transform: scale(0.92);
+}
+
+/* Active indicator pill above icon */
+.nav-tab.active::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 32px;
+  height: 3px;
+  background: var(--color-nav-active);
+  border-radius: 0 0 4px 4px;
+}
+
+.nav-tab-icon {
+  font-size: 22px;
+  line-height: 1;
+  transition: filter 0.2s ease;
+}
+
+.nav-tab.active .nav-tab-icon {
+  filter: drop-shadow(0 0 6px rgba(255, 45, 140, 0.6));
+}
+
+.nav-tab-label {
+  font-size: 10px;
+  font-weight: 500;
+  line-height: 1;
+  letter-spacing: 0.02em;
+  color: var(--color-nav-inactive);
+  transition: color 0.2s ease;
+}
+
+.nav-tab.active .nav-tab-label {
+  color: var(--color-nav-active);
+  font-weight: 700;
+}
+
+/* ── Placeholder page ────────────────────────────────────── */
+.placeholder-page {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  color: var(--color-text-secondary);
+}
+
+.placeholder-page .placeholder-icon {
+  font-size: 48px;
+  opacity: 0.5;
+}
+
+.placeholder-page p {
+  font-size: 14px;
+  opacity: 0.6;
+}
