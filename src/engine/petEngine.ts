@@ -132,7 +132,9 @@ export function processAccumulateDeposit(
     return next;
   }
 
-  const isValid = amount >= book.accumulate.targetMonthlyAmount * 0.8;
+  const isValid = book.accumulate.targetMonthlyAmount > 0
+    ? amount >= book.accumulate.targetMonthlyAmount * 0.8
+    : true;
 
   book.accumulate.periodHistory.push({
     period,

@@ -87,7 +87,7 @@ export function ProgressBar({ progressPoints, runningPoints, milestoneHistory }:
       {/* Scrollable Container */}
       <div style={{ 
         width: '100%', overflowX: 'auto', overflowY: 'visible',
-        paddingBottom: 24, paddingTop: 80,
+        paddingBottom: 20, paddingTop: 20,
         scrollbarWidth: 'none' /* Firefox */
       }}>
         <div style={{ position: 'relative', height: 44, display: 'flex', alignItems: 'center', minWidth: 6000, margin: '0 16px', paddingRight: 16 }}>
@@ -214,9 +214,9 @@ export function ProgressBar({ progressPoints, runningPoints, milestoneHistory }:
                 textAlign: 'center'
               }}>
                 <div style={{ fontSize: 12, color: '#aaa', marginBottom: 4 }}>Phần thưởng</div>
-                {selectedMarker.tier === 'large' && <div style={{ color: '#FFD700', fontWeight: 700, fontSize: 15 }}>Voucher giá trị lớn & Phụ kiện siêu hiếm</div>}
-                {selectedMarker.tier === 'mid' && <div style={{ color: '#E0F7FA', fontWeight: 700, fontSize: 15 }}>Túi Mù (Blind Bag) ngẫu nhiên</div>}
-                {selectedMarker.tier === 'small' && <div style={{ color: '#E0F7FA', fontWeight: 700, fontSize: 15 }}>Sticker / Phụ kiện cơ bản</div>}
+                {selectedMarker.tier === 'large' && <div style={{ color: '#FFD700', fontWeight: 700, fontSize: 15 }}>Voucher tiền mặt & Túi Mù ngẫu nhiên</div>}
+                {selectedMarker.tier === 'mid' && <div style={{ color: '#E0F7FA', fontWeight: 700, fontSize: 15 }}>Thẻ Booster tăng điểm & Tiện ích</div>}
+                {selectedMarker.tier === 'small' && <div style={{ color: '#E0F7FA', fontWeight: 700, fontSize: 15 }}>Phụ kiện / Huy hiệu Gato</div>}
               </div>
 
               {earnedIds.has(selectedMarker.id) ? (

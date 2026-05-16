@@ -60,12 +60,6 @@ function GatoPointsPreview({ amount, termMonths, currentProgressPoints }: {
   const dailyPts = Math.floor(amount / 100_000);
   const totalPts = dailyPts * 30 * termMonths;
 
-  const nextMilestone = [...ALL_MILESTONES]
-    .sort((a, b) => a.pointsRequired - b.pointsRequired)
-    .find(m => m.pointsRequired > currentProgressPoints);
-
-  const ptsLeft = nextMilestone ? Math.max(1, nextMilestone.pointsRequired - currentProgressPoints) : 1;
-  const pct = Math.min(Math.round((totalPts / ptsLeft) * 100), 999);
 
   return (
     <div style={{
@@ -97,11 +91,6 @@ function GatoPointsPreview({ amount, termMonths, currentProgressPoints }: {
             {totalPts.toLocaleString('vi-VN')} điểm
           </span>
         </div>
-        {nextMilestone && (
-          <div style={{ fontSize: 11, color: 'var(--color-text-green)', marginTop: 2 }}>
-            Tương đương: <b>{pct}%</b> tiến độ đến mốc {nextMilestone.id}
-          </div>
-        )}
       </div>
     </div>
   );

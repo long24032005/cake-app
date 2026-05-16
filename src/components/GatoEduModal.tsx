@@ -1,0 +1,131 @@
+import { motion, AnimatePresence } from 'framer-motion';
+import { createPortal } from 'react-dom';
+
+interface Props {
+  isOpen: boolean;
+  onClose: () => void;
+}
+
+export function GatoEduModal({ isOpen, onClose }: Props) {
+  const rootEl = document.getElementById('root');
+  if (!rootEl) return null;
+
+  return createPortal(
+    <AnimatePresence>
+      {isOpen && (
+        <div style={{
+          position: 'fixed', top: 0, bottom: 0, left: '50%', transform: 'translateX(-50%)',
+          width: '100%', maxWidth: 430, zIndex: 1000, pointerEvents: 'none',
+          display: 'flex', alignItems: 'center', justifyContent: 'center'
+        }}>
+          {/* Overlay */}
+          <motion.div
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            onClick={onClose}
+            style={{ position: 'absolute', inset: 0, background: 'rgba(13,11,31,0.92)', backdropFilter: 'blur(8px)', pointerEvents: 'auto' }}
+          />
+
+          {/* Modal Content */}
+          <motion.div
+            initial={{ y: 100, opacity: 0, scale: 0.95 }}
+            animate={{ y: 0, opacity: 1, scale: 1 }}
+            exit={{ y: 100, opacity: 0, scale: 0.95 }}
+            transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+            style={{
+              position: 'relative', width: '90%', maxHeight: '85vh',
+              background: 'var(--color-bg-card)', border: '1.5px solid var(--color-bg-card-border)',
+              borderRadius: 28, padding: '24px 0 0', display: 'flex', flexDirection: 'column',
+              boxShadow: '0 20px 60px rgba(0,0,0,0.6)', pointerEvents: 'auto', overflow: 'hidden'
+            }}
+          >
+            {/* Header */}
+            <div style={{ padding: '0 24px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <h2 style={{ fontSize: 20, fontWeight: 900, color: '#fff', margin: 0 }}>
+                Nuôi Gato là gì? 🐱
+              </h2>
+              <button 
+                onClick={onClose}
+                style={{ background: 'rgba(255,255,255,0.1)', border: 'none', borderRadius: '50%', width: 32, height: 32, color: '#fff', fontSize: 18, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+              >✕</button>
+            </div>
+
+            {/* Scrollable Body */}
+            <div style={{ flex: 1, overflowY: 'auto', padding: '0 24px 24px', display: 'flex', flexDirection: 'column', gap: 20 }}>
+              
+              {/* Illustration */}
+              <div style={{ width: '100%', borderRadius: 20, overflow: 'hidden', background: 'rgba(0,0,0,0.2)' }}>
+                <img src="/gato_edu_illustration.png" alt="Gato Edu" style={{ width: '100%', display: 'block' }} />
+              </div>
+
+              {/* Section 1: Intro */}
+              <div>
+                <div style={{ fontSize: 15, color: '#fff', fontWeight: 700, marginBottom: 8 }}>💎 Tiết kiệm thông minh - Nhận quà cực đỉnh</div>
+                <p style={{ fontSize: 13, color: 'var(--color-text-secondary)', margin: 0, lineHeight: 1.6 }}>
+                  Nuôi Gato là chương trình khách hàng thân thiết mới của Cake. Khi bạn mở sổ Tiết kiệm, Gato sẽ bắt đầu tích lũy điểm thưởng để giúp bạn mở các mốc quà giá trị.
+                </p>
+              </div>
+
+              {/* Section 2: Points Types */}
+              <div style={{ background: 'rgba(155,150,200,0.06)', borderRadius: 20, padding: 16, display: 'flex', flexDirection: 'column', gap: 12 }}>
+                <div style={{ fontSize: 14, fontWeight: 800, color: 'var(--color-primary-pink)' }}>✨ 3 Loại điểm bạn cần biết:</div>
+                
+                <div style={{ display: 'flex', gap: 12 }}>
+                  <div style={{ width: 24, fontSize: 16 }}>🏃</div>
+                  <div>
+                    <div style={{ fontSize: 13, fontWeight: 700, color: '#fff' }}>Điểm Đang tích (Running)</div>
+                    <div style={{ fontSize: 12, color: 'var(--color-text-secondary)' }}>Tự động cộng vào ví Gato mỗi ngày dựa trên số dư thực tế của sổ.</div>
+                  </div>
+                </div>
+
+                <div style={{ display: 'flex', gap: 12 }}>
+                  <div style={{ width: 24, fontSize: 16 }}>🔒</div>
+                  <div>
+                    <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text-green)' }}>Điểm Đã chốt (Locked)</div>
+                    <div style={{ fontSize: 12, color: 'var(--color-text-secondary)' }}>Sau mỗi chu kỳ 30 ngày giữ sổ ổn định, điểm Running sẽ được "chốt" thành điểm Locked vĩnh viễn.</div>
+                  </div>
+                </div>
+
+                <div style={{ display: 'flex', gap: 12 }}>
+                  <div style={{ width: 24, fontSize: 16 }}>🎁</div>
+                  <div>
+                    <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text-blue)' }}>Điểm Thưởng (Bonus)</div>
+                    <div style={{ fontSize: 12, color: 'var(--color-text-secondary)' }}>Thưởng thêm cực lớn khi bạn hoàn thành chu kỳ hoặc giữ sổ đến ngày đáo hạn.</div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Section 3: Rewards */}
+              <div>
+                <div style={{ fontSize: 15, color: '#fff', fontWeight: 700, marginBottom: 8 }}>🎁 Điều kiện mở quà</div>
+                <p style={{ fontSize: 13, color: 'var(--color-text-secondary)', margin: 0, lineHeight: 1.6 }}>
+                  Quà sẽ được tự động mở khi tổng <span style={{ color: 'var(--color-text-green)', fontWeight: 700 }}>Điểm Đã chốt</span> của bạn đạt đến các mốc (Milestones). Càng nhiều điểm chốt, quà càng to!
+                </p>
+              </div>
+
+              {/* Section 4: Withdrawal */}
+              <div style={{ borderLeft: '3px solid #FF6B6B', paddingLeft: 16 }}>
+                <div style={{ fontSize: 15, color: '#FF6B6B', fontWeight: 700, marginBottom: 8 }}>⚠️ Lưu ý khi rút tiền sớm</div>
+                <p style={{ fontSize: 13, color: 'var(--color-text-secondary)', margin: 0, lineHeight: 1.6 }}>
+                  Nếu bạn rút một phần hoặc tất toán sổ sớm, bạn sẽ bị trừ Điểm Đang tích và Điểm Thưởng tương ứng, dẫn đến chậm tiến độ đạt mốc nhận quà. Điểm Đã chốt sẽ không bao giờ bị trừ.
+                </p>
+              </div>
+
+            </div>
+
+            {/* Footer */}
+            <div style={{ padding: '16px 24px 24px', borderTop: '1px solid var(--color-bg-card-border)' }}>
+              <button 
+                onClick={onClose}
+                style={{
+                  width: '100%', padding: '14px', borderRadius: 'var(--radius-btn)',
+                  background: 'var(--gradient-btn-primary)', border: 'none', color: '#fff', fontWeight: 800, fontSize: 15, cursor: 'pointer'
+                }}
+              >Tôi đã hiểu!</button>
+            </div>
+          </motion.div>
+        </div>
+      )}
+    </AnimatePresence>,
+    rootEl
+  );
+}

@@ -218,6 +218,9 @@ export function SavingsScreen() {
       {/* 2. Summary card */}
       <SummaryCard />
 
+
+      {/* 3. Mở sổ tiết kiệm mới */}
+
       {/* 3. Mở sổ mới */}
       <div style={{ margin: '20px 20px 0' }}>
         <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-text-primary)', marginBottom: 10 }}>

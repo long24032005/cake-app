@@ -16,6 +16,8 @@ import { SavingsBookCardCompact } from '../components/SavingsBookCardCompact';
 import { useAppStore } from '../store/useAppStore';
 import { calculateDailyPoints } from '../engine/pointEngine';
 import { ROUND_COMPLETE_THRESHOLD } from '../config';
+import { GatoEduModal } from '../components/GatoEduModal';
+import { useState } from 'react';
 
 interface HomeScreenProps {
   onGoToInventory?: () => void;
@@ -46,6 +48,7 @@ function StatCard({ label, value, accent }: { label: string; value: string | num
 // ── Main Screen ──────────────────────────────────────────────
 export function HomeScreen({ onGoToInventory, onGoToSavings, onGoToMilestoneMap, onLogoTap }: HomeScreenProps) {
   const user      = useAppStore(s => s.user);
+  const [isEduOpen, setIsEduOpen] = useState(false);
   const { journey, petState, savingsBooks, inventory } = user;
 
   const activeBooks = savingsBooks.filter(b => b.status === 'active');
@@ -131,8 +134,20 @@ export function HomeScreen({ onGoToInventory, onGoToSavings, onGoToMilestoneMap,
           display: 'flex', justifyContent: 'space-between', alignItems: 'center',
           marginBottom: 12,
         }}>
-          <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text-primary)' }}>
-            Hành trình của Gato
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+            <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text-primary)' }}>
+              Hành trình của Gato
+            </div>
+            <button
+              onClick={() => setIsEduOpen(true)}
+              style={{
+                width: 18, height: 18, borderRadius: '50%',
+                background: 'rgba(155,150,200,0.15)', border: 'none',
+                color: 'var(--color-text-secondary)', fontSize: 11,
+                fontWeight: 800, cursor: 'pointer', display: 'flex',
+                alignItems: 'center', justifyContent: 'center', padding: 0
+              }}
+            >?</button>
           </div>
           <button
             id="btn-milestone-map"
@@ -244,6 +259,8 @@ export function HomeScreen({ onGoToInventory, onGoToSavings, onGoToMilestoneMap,
           <span style={{ color: 'var(--color-primary-pink)', fontSize: 16 }}>›</span>
         </motion.button>
       )}
+      {/* Educational Modal */}
+      <GatoEduModal isOpen={isEduOpen} onClose={() => setIsEduOpen(false)} />
     </div>
   );
 }

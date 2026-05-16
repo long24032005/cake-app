@@ -18,7 +18,13 @@ const TERM_OPTIONS = [
 ] as const;
 
 // ── Build SavingsBook object
-function buildAccumulateBook(initialAmount: number, monthlyTarget: number, termMonths: number, rate: number): SavingsBook {
+function buildAccumulateBook(
+  initialAmount: number,
+  monthlyTarget: number,
+  termMonths: number,
+  rate: number,
+  autoDeposit?: { enabled: boolean; amount: number; dayOfMonth: number | 'start' | 'end' }
+): SavingsBook {
   const today = toISODate(new Date());
   return {
     bookId: `book_acc_${Date.now()}`,
@@ -34,7 +40,12 @@ function buildAccumulateBook(initialAmount: number, monthlyTarget: number, termM
       targetMonthlyAmount: monthlyTarget,
       totalPeriods: termMonths,
       completedPeriods: 0,
-      periodHistory: []
+      periodHistory: [],
+      autoDeposit: autoDeposit?.enabled ? {
+        enabled: true,
+        amount: autoDeposit.amount,
+        dayOfMonth: autoDeposit.dayOfMonth,
+      } : undefined,
     },
     pointTracking: {
       balanceHistory: [{ date: today, balance: initialAmount }],
@@ -55,24 +66,20 @@ function fmtDate(iso: string) {
 }
 
 // ── Gato Points Preview Card (Accumulate logic)
-function GatoPointsPreview({ monthlyTarget, termMonths, currentProgressPoints }: {
-  monthlyTarget: number; termMonths: number; currentProgressPoints: number;
+function GatoPointsPreview({ initialAmount, monthlyTarget, termMonths, currentProgressPoints }: {
+  initialAmount: number; monthlyTarget: number; termMonths: number; currentProgressPoints: number;
 }) {
-  const monthlyPts = Math.floor(monthlyTarget / 100_000) * 30; // base pts if they meet target
-  
-  // Total pts is an estimation assuming balance grows by monthlyTarget each month.
-  // Month 1: 1 * monthlyTarget
-  // Month 2: 2 * monthlyTarget
-  // ... sum = n(n+1)/2 * monthlyTarget
-  const sumOfPeriods = (termMonths * (termMonths + 1)) / 2;
-  const totalPts = Math.floor((sumOfPeriods * monthlyTarget) / 100_000) * 30;
+  // Estimation: points per day = floor(Balance / 100,000)
+  // Total pts = Sum for T months (assume 30 days each)
+  let totalPts = 0;
+  for (let m = 0; m < termMonths; m++) {
+    const currentBalance = initialAmount + m * monthlyTarget;
+    const dailyPts = Math.floor(currentBalance / 100_000);
+    totalPts += dailyPts * 30;
+  }
 
-  const nextMilestone = [...ALL_MILESTONES]
-    .sort((a, b) => a.pointsRequired - b.pointsRequired)
-    .find(m => m.pointsRequired > currentProgressPoints);
+  const monthlyPtsAvg = termMonths > 0 ? Math.floor(totalPts / termMonths) : 0;
 
-  const ptsLeft = nextMilestone ? Math.max(1, nextMilestone.pointsRequired - currentProgressPoints) : 1;
-  const pct = Math.min(Math.round((totalPts / ptsLeft) * 100), 999);
 
   return (
     <div style={{
@@ -95,7 +102,7 @@ function GatoPointsPreview({ monthlyTarget, termMonths, currentProgressPoints }:
           Gato sẽ nhận được:
         </div>
         <div style={{ fontSize: 18, fontWeight: 900, color: '#5BC8F5', lineHeight: 1.2 }}>
-          ~{monthlyPts.toLocaleString('vi-VN')} điểm/tháng
+          ~{monthlyPtsAvg.toLocaleString('vi-VN')} điểm/tháng
         </div>
         <div style={{ fontSize: 12, color: 'var(--color-text-secondary)', marginTop: 4 }}>
           Nếu gửi đều {termMonths} tháng: khoảng{' '}
@@ -103,11 +110,6 @@ function GatoPointsPreview({ monthlyTarget, termMonths, currentProgressPoints }:
             {totalPts.toLocaleString('vi-VN')} điểm
           </span>
         </div>
-        {nextMilestone && (
-          <div style={{ fontSize: 11, color: 'var(--color-text-green)', marginTop: 2 }}>
-            Tương đương: <b>{pct}%</b> tiến độ đến mốc {nextMilestone.id}
-          </div>
-        )}
       </div>
     </div>
   );
@@ -152,27 +154,41 @@ function SectionLabel({ children }: { children: React.ReactNode }) {
 interface Props { onBack: () => void; onSuccess: () => void; }
 
 export function OpenAccumulateBookFlow({ onBack, onSuccess }: Props) {
-  const [step, setStep] = useState<1 | 2>(1);
-  const [rawInitial, setRawInitial] = useState('');
-  const [rawMonthly, setRawMonthly] = useState('500000');
+  const [step, setStep] = useState<1 | 2 | 3>(1);
+  const [rawInitial, setRawInitial] = useState('100000');
   const [termMonths, setTermMonths] = useState(12);
   const [rate, setRate]           = useState(6.7);
+
+  // Auto-deposit settings
+  const [autoDepositEnabled, setAutoDepositEnabled] = useState(false);
+  const [rawAutoAmount, setRawAutoAmount] = useState('500000');
+  const [autoDay, setAutoDay] = useState<number | 'start' | 'end'>(1);
 
   const addBook     = useAppStore(s => s.addBook);
   const runDailyJob = useAppStore(s => s.runDailyJob);
   const progressPts = useAppStore(s => s.user.journey.progressPoints);
 
   const initialAmount = Math.max(0, parseInt(rawInitial.replace(/\D/g, '') || '0', 10));
-  const monthlyAmount = Math.max(0, parseInt(rawMonthly.replace(/\D/g, '') || '0', 10));
+  const autoAmount = Math.max(0, parseInt(rawAutoAmount.replace(/\D/g, '') || '0', 10));
   
-  const isValid = monthlyAmount >= 100_000;
-  const MOCK_AVAILABLE = 10_000_000;
+  // Logic: monthlyAmount is determined by autoDeposit if enabled
+  const monthlyAmount = autoDepositEnabled ? autoAmount : 0;
+
+  const isStep1Valid = initialAmount >= 100_000;
+  const isStep2Valid = !autoDepositEnabled || autoAmount >= 100_000;
+
   const maturityDate = addDays(toISODate(new Date()), termMonths * 30);
 
   function handleConfirm() {
-    const book = buildAccumulateBook(initialAmount, monthlyAmount, termMonths, rate);
+    const book = buildAccumulateBook(
+      initialAmount, 
+      monthlyAmount, 
+      termMonths, 
+      rate,
+      { enabled: autoDepositEnabled, amount: autoAmount, dayOfMonth: autoDay }
+    );
     addBook(book);
-    runDailyJob(1); // trigger immediately so user sees points update
+    runDailyJob(1); 
     onSuccess();
   }
 
@@ -185,13 +201,16 @@ export function OpenAccumulateBookFlow({ onBack, onSuccess }: Props) {
     }}>
       <button
         id="btn-back"
-        onClick={step === 2 ? () => setStep(1) : onBack}
+        onClick={() => {
+          if (step === 1) onBack();
+          else setStep((step - 1) as any);
+        }}
         style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 20, color: 'var(--color-text-primary)', padding: 4 }}
         aria-label="Quay lại"
       >←</button>
       <div style={{ fontSize: 17, fontWeight: 800, color: 'var(--color-text-primary)' }}>{title}</div>
       <div style={{ marginLeft: 'auto', fontSize: 11, color: 'var(--color-text-secondary)' }}>
-        Bước {step}/2
+        Bước {step}/3
       </div>
     </div>
   );
@@ -219,21 +238,16 @@ export function OpenAccumulateBookFlow({ onBack, onSuccess }: Props) {
   return (
     <AnimatePresence mode="wait">
       {step === 1 ? (
-        // ════════════════════════════════════════════
-        // SCREEN 4A — Input
-        // ════════════════════════════════════════════
         <motion.div key="4a"
           initial={{ opacity: 0, x: 30 }} animate={{ opacity: 1, x: 0 }}
           exit={{ opacity: 0, x: -30 }} transition={{ duration: 0.2 }}
           style={{ display: 'flex', flexDirection: 'column', minHeight: '100%' }}
         >
           <PageHeader title="Mở sổ Tích lũy" />
-
           <div style={{ flex: 1, overflowY: 'auto', padding: '16px 20px', display: 'flex', flexDirection: 'column', gap: 20 }}>
-
             {/* 1. Số tiền bắt đầu */}
             <div>
-              <SectionLabel>Số tiền gửi lần đầu (Có thể để trống)</SectionLabel>
+              <SectionLabel>Số tiền gửi lần đầu (Bắt buộc)</SectionLabel>
               <div style={{
                 background: 'var(--color-bg-card)', border: '1px solid var(--color-bg-card-border)',
                 borderRadius: 'var(--radius-card)', padding: '14px 16px',
@@ -241,36 +255,10 @@ export function OpenAccumulateBookFlow({ onBack, onSuccess }: Props) {
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                   <span style={{ fontSize: 20, color: 'var(--color-text-secondary)' }}>₫</span>
                   <input
-                    type="text"
-                    inputMode="numeric"
+                    type="text" inputMode="numeric"
                     value={initialAmount > 0 ? fmtVND(initialAmount) : ''}
                     onChange={e => setRawInitial(e.target.value)}
-                    placeholder="0"
-                    style={{
-                      flex: 1, background: 'transparent', border: 'none', outline: 'none',
-                      fontSize: 22, fontWeight: 800, color: 'var(--color-text-primary)',
-                      width: '100%',
-                    }}
-                  />
-                </div>
-              </div>
-            </div>
-
-            {/* 2. Số tiền gửi góp hàng tháng */}
-            <div>
-              <SectionLabel>Số tiền gửi góp mỗi tháng</SectionLabel>
-              <div style={{
-                background: 'var(--color-bg-card)', border: '1px solid var(--color-bg-card-border)',
-                borderRadius: 'var(--radius-card)', padding: '14px 16px',
-              }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                  <span style={{ fontSize: 20, color: 'var(--color-text-secondary)' }}>₫</span>
-                  <input
-                    type="text"
-                    inputMode="numeric"
-                    value={monthlyAmount > 0 ? fmtVND(monthlyAmount) : ''}
-                    onChange={e => setRawMonthly(e.target.value)}
-                    placeholder="Nhập số tiền"
+                    placeholder="Tối thiểu 100,000đ"
                     style={{
                       flex: 1, background: 'transparent', border: 'none', outline: 'none',
                       fontSize: 22, fontWeight: 800, color: 'var(--color-text-primary)',
@@ -279,9 +267,9 @@ export function OpenAccumulateBookFlow({ onBack, onSuccess }: Props) {
                   />
                 </div>
                 <div style={{ fontSize: 11, color: 'var(--color-text-secondary)', marginTop: 6 }}>
-                  Khuyến nghị tối thiểu: 100,000đ
+                  Yêu cầu tối thiểu: 100,000đ
                 </div>
-                {monthlyAmount > 0 && monthlyAmount < 100_000 && (
+                {initialAmount > 0 && initialAmount < 100_000 && (
                   <div style={{ fontSize: 11, color: '#FF6B6B', marginTop: 4 }}>
                     ⚠ Số tiền tối thiểu là 100,000đ
                   </div>
@@ -295,8 +283,7 @@ export function OpenAccumulateBookFlow({ onBack, onSuccess }: Props) {
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10 }}>
                 {TERM_OPTIONS.map(opt => (
                   <TermCard
-                    key={opt.months}
-                    months={opt.months} rate={opt.rate}
+                    key={opt.months} months={opt.months} rate={opt.rate}
                     selected={termMonths === opt.months}
                     onSelect={() => { setTermMonths(opt.months); setRate(opt.rate); }}
                   />
@@ -304,47 +291,127 @@ export function OpenAccumulateBookFlow({ onBack, onSuccess }: Props) {
               </div>
             </div>
 
-            {/* 4. Note */}
-            <div style={{
-              fontSize: 11, color: 'var(--color-text-secondary)',
-              background: 'rgba(255,255,255,0.05)', borderRadius: 10, padding: '10px 14px',
-              lineHeight: 1.6,
-            }}>
-              💡 Lãi suất không cố định cho toàn bộ thời gian gửi mà có thể thay đổi dựa trên quy định tại từng thời điểm.
-            </div>
-
-            {/* 5. Ước tính điểm Gato */}
-            <GatoPointsPreview monthlyTarget={monthlyAmount} termMonths={termMonths} currentProgressPoints={progressPts} />
+            {/* 4. Estimate points */}
+            <GatoPointsPreview initialAmount={initialAmount} monthlyTarget={monthlyAmount} termMonths={termMonths} currentProgressPoints={progressPts} />
           </div>
-
-          <PillBtn id="btn-continue" label="Tiếp tục →" disabled={!isValid} onClick={() => setStep(2)} />
+          <PillBtn id="btn-continue" label="Tiếp tục →" disabled={!isStep1Valid} onClick={() => setStep(2)} />
         </motion.div>
 
-      ) : (
+      ) : step === 2 ? (
         // ════════════════════════════════════════════
-        // SCREEN 4B — Xác nhận
+        // SCREEN 4B — Auto-deposit settings
         // ════════════════════════════════════════════
         <motion.div key="4b"
           initial={{ opacity: 0, x: 30 }} animate={{ opacity: 1, x: 0 }}
           exit={{ opacity: 0, x: -30 }} transition={{ duration: 0.2 }}
           style={{ display: 'flex', flexDirection: 'column', minHeight: '100%' }}
         >
-          <PageHeader title="Xác nhận mở sổ" />
+          <PageHeader title="Tự động nạp tiền" />
+          <div style={{ flex: 1, overflowY: 'auto', padding: '16px 20px', display: 'flex', flexDirection: 'column', gap: 24 }}>
+            
+            <div style={{
+              background: 'var(--color-bg-card)', border: '1px solid var(--color-bg-card-border)',
+              borderRadius: 'var(--radius-card)', padding: '20px 16px',
+              display: 'flex', justifyContent: 'space-between', alignItems: 'center'
+            }}>
+              <div>
+                <div style={{ fontSize: 16, fontWeight: 800, color: 'var(--color-text-primary)' }}>Chế độ nạp tiền tự động</div>
+                <div style={{ fontSize: 12, color: 'var(--color-text-secondary)', marginTop: 4 }}>Giúp Gato nhận điểm đều đặn mỗi tháng</div>
+              </div>
+              <div 
+                onClick={() => setAutoDepositEnabled(!autoDepositEnabled)}
+                style={{
+                  width: 50, height: 28, borderRadius: 14, cursor: 'pointer',
+                  background: autoDepositEnabled ? '#5BC8F5' : 'rgba(255,255,255,0.1)',
+                  position: 'relative', transition: 'all 0.2s'
+                }}
+              >
+                <motion.div 
+                  animate={{ x: autoDepositEnabled ? 24 : 2 }}
+                  style={{ width: 24, height: 24, borderRadius: '50%', background: '#fff', position: 'absolute', top: 2 }}
+                />
+              </div>
+            </div>
 
+            {autoDepositEnabled && (
+              <motion.div
+                initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}
+                style={{ display: 'flex', flexDirection: 'column', gap: 20 }}
+              >
+                <div>
+                  <SectionLabel>Số tiền nạp mỗi tháng</SectionLabel>
+                  <div style={{
+                    background: 'var(--color-bg-card)', border: '1px solid var(--color-bg-card-border)',
+                    borderRadius: 'var(--radius-card)', padding: '14px 16px',
+                  }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <span style={{ fontSize: 20, color: 'var(--color-text-secondary)' }}>₫</span>
+                      <input
+                        type="text" inputMode="numeric"
+                        value={autoAmount > 0 ? fmtVND(autoAmount) : ''}
+                        onChange={e => setRawAutoAmount(e.target.value)}
+                        placeholder="Nhập số tiền"
+                        style={{
+                          flex: 1, background: 'transparent', border: 'none', outline: 'none',
+                          fontSize: 22, fontWeight: 800, color: 'var(--color-text-primary)',
+                          width: '100%',
+                        }}
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div>
+                  <SectionLabel>Ngày nạp hàng tháng</SectionLabel>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10 }}>
+                    {[
+                      { label: 'Đầu tháng', val: 'start' as const },
+                      { label: 'Ngày 15',    val: 15 },
+                      { label: 'Cuối tháng', val: 'end' as const },
+                    ].map(opt => (
+                      <button
+                        key={opt.label}
+                        onClick={() => setAutoDay(opt.val)}
+                        style={{
+                          padding: '12px 8px', borderRadius: 10, cursor: 'pointer',
+                          background: autoDay === opt.val ? 'rgba(91,200,245,0.12)' : 'var(--color-bg-card)',
+                          border: autoDay === opt.val ? '1.5px solid #5BC8F5' : '1px solid var(--color-bg-card-border)',
+                          fontSize: 13, fontWeight: 700, color: autoDay === opt.val ? '#5BC8F5' : 'var(--color-text-primary)',
+                        }}
+                      >{opt.label}</button>
+                    ))}
+                  </div>
+                </div>
+              </motion.div>
+            )}
+
+            <div style={{ fontSize: 12, color: 'var(--color-text-secondary)', lineHeight: 1.6 }}>
+              💡 Việc thiết lập tự động nạp tiền sẽ giúp sổ tích lũy của bạn luôn duy trì phong độ và nhận được đầy đủ các phần thưởng Gato theo mốc.
+            </div>
+          </div>
+          <PillBtn id="btn-continue-2" label="Tiếp tục →" disabled={!isStep2Valid} onClick={() => setStep(3)} />
+        </motion.div>
+
+      ) : (
+        // ════════════════════════════════════════════
+        // SCREEN 4C — Confirmation
+        // ════════════════════════════════════════════
+        <motion.div key="4c"
+          initial={{ opacity: 0, x: 30 }} animate={{ opacity: 1, x: 0 }}
+          exit={{ opacity: 0, x: -30 }} transition={{ duration: 0.2 }}
+          style={{ display: 'flex', flexDirection: 'column', minHeight: '100%' }}
+        >
+          <PageHeader title="Xác nhận thông tin" />
           <div style={{ flex: 1, overflowY: 'auto', padding: '16px 20px', display: 'flex', flexDirection: 'column', gap: 16 }}>
-
-            {/* Recap card */}
             <div style={{
               background: 'var(--color-bg-card)', border: '1px solid var(--color-bg-card-border)',
               borderRadius: 'var(--radius-card)', padding: '16px', display: 'flex', flexDirection: 'column', gap: 12,
             }}>
-              <div style={{ fontSize: 14, fontWeight: 800, color: 'var(--color-text-primary)', marginBottom: 4 }}>
-                Thông tin sổ tiết kiệm
-              </div>
+              <div style={{ fontSize: 14, fontWeight: 800, color: 'var(--color-text-primary)', marginBottom: 4 }}>Thông tin sổ tích lũy</div>
               {[
-                { label: 'Loại sổ',       val: 'Tiết kiệm Tích lũy' },
                 { label: 'Gửi lần đầu',   val: `${fmtVND(initialAmount)}đ` },
-                { label: 'Gửi góp định kỳ',val: `${fmtVND(monthlyAmount)}đ/tháng`, accent: '#5BC8F5' },
+                { label: 'Gửi góp (Target)',val: monthlyAmount > 0 ? `${fmtVND(monthlyAmount)}đ/tháng` : 'Không đăng ký', accent: '#5BC8F5' },
+                { label: 'Tự động nạp',    val: autoDepositEnabled ? `Có (${fmtVND(autoAmount)}đ)` : 'Không', accent: autoDepositEnabled ? 'var(--color-text-green)' : undefined },
                 { label: 'Kỳ hạn',        val: `${termMonths} tháng` },
                 { label: 'Lãi suất',      val: `${rate}%/năm`, accent: 'var(--color-text-green)' },
                 { label: 'Ngày đáo hạn',  val: fmtDate(maturityDate), accent: 'var(--color-text-blue)' },
@@ -356,10 +423,8 @@ export function OpenAccumulateBookFlow({ onBack, onSuccess }: Props) {
               ))}
             </div>
 
-            {/* Gato preview lần 2 */}
-            <GatoPointsPreview monthlyTarget={monthlyAmount} termMonths={termMonths} currentProgressPoints={progressPts} />
+            <GatoPointsPreview initialAmount={initialAmount} monthlyTarget={monthlyAmount} termMonths={termMonths} currentProgressPoints={progressPts} />
           </div>
-
           <PillBtn id="btn-confirm-open" label="🎉 Xác nhận mở sổ" onClick={handleConfirm} />
         </motion.div>
       )}

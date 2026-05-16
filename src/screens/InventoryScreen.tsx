@@ -22,7 +22,7 @@ type FilterTab = typeof FILTER_TABS[number]['id'];
 
 const TYPE_ICONS: Record<InventoryItemType, string> = {
   voucher: '🎫',
-  pet_accessory: '🎀',
+  pet_accessory: '🎁',
   badge: '🏅',
   booster: '⚡',
   utility_ticket: '🎟️',
@@ -30,10 +30,55 @@ const TYPE_ICONS: Record<InventoryItemType, string> = {
 };
 
 const ITEM_LABELS: Record<string, string> = {
+  cat_ears: 'Mũ Tai Mèo',
+  bow_pastel: 'Nơ Cổ Pastel',
+  heart_glasses: 'Kính Trái Tim',
+  golden_bell: 'Chuông Vàng',
+  heart_badge: 'Huy Hiệu Tim',
+  princess_crown: 'Vương Miện Công Chúa',
+  toy_mouse: 'Bạn Chuột Đồ Chơi',
+  gold_fish: 'Cá Vàng Nhỏ',
+  feather_band: 'Băng Đô Lông Vũ',
+  pirate_hat: 'Mũ Hải Tặc',
+  angel_wings: 'Cánh Thiên Thần',
+  pearl_necklace: 'Chuỗi Ngọc Trai',
+  daisy_flower: 'Hoa Cúc Nhỏ',
+  diamond_bracelet: 'Vòng Tay Kim Cương',
+  rainbow_lollipop: 'Kẹo Mút Cầu Vồng',
+  sparkle_effect: 'Hiệu Ứng Lấp Lánh',
+  little_bird: 'Bạn Chim Nhỏ',
+  chef_hat: 'Mũ Đầu Bếp',
+  star_clip: 'Kẹp Ngôi Sao',
+  bunny_hug: 'Thỏ Con Ôm Ấp',
+  bow_pink: 'Nơ Hồng',
+  wings_small: 'Cánh Nhỏ',
   sticker_pack_1: 'Sticker Pack',
   pet_frame_gold: 'Khung Pet Vàng',
-  voucher_10k: 'Voucher 10,000đ',
-  voucher_50k: 'Voucher 50,000đ',
+};
+
+const ITEM_ICONS: Record<string, string> = {
+  cat_ears: '🐱',
+  bow_pastel: '🎀',
+  heart_glasses: '👓',
+  golden_bell: '🔔',
+  heart_badge: '❤️',
+  princess_crown: '👑',
+  toy_mouse: '🐭',
+  gold_fish: '🐠',
+  feather_band: '🪶',
+  pirate_hat: '🏴‍☠️',
+  angel_wings: '👼',
+  pearl_necklace: '📿',
+  daisy_flower: '🌼',
+  diamond_bracelet: '💍',
+  rainbow_lollipop: '🍭',
+  sparkle_effect: '✨',
+  little_bird: '🐦',
+  chef_hat: '👨‍🍳',
+  star_clip: '⭐',
+  bunny_hug: '🐰',
+  bow_pink: '🎀',
+  wings_small: '🦋',
 };
 
 // Formatting date string
@@ -204,6 +249,7 @@ function InventoryCard({
   }
 
   if (item.type === 'pet_accessory') {
+    const itemIcon = item.itemId ? (ITEM_ICONS[item.itemId] || icon) : icon;
     return (
       <div style={{
         background: isEquipped ? 'rgba(255,45,140,0.1)' : 'var(--color-bg-card)',
@@ -211,7 +257,7 @@ function InventoryCard({
         borderRadius: 12, padding: '12px 8px',
         display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6
       }}>
-        <div style={{ fontSize: 24 }}>{icon}</div>
+        <div style={{ fontSize: 24 }}>{itemIcon}</div>
         <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-primary)', textAlign: 'center' }}>
           {label}
         </div>
@@ -237,12 +283,12 @@ function InventoryCard({
       borderRadius: 12, padding: '12px 8px',
       display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6
     }}>
-      <div style={{ fontSize: 24 }}>{icon}</div>
+      <div style={{ fontSize: 24 }}>{item.itemId ? (ITEM_ICONS[item.itemId] || icon) : icon}</div>
       <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-primary)', textAlign: 'center' }}>
         {label || item.type}
       </div>
       <div style={{ fontSize: 9, color: 'var(--color-text-secondary)', marginTop: 'auto' }}>
-        {formatDate(item.receivedAt)}
+        {formatDate(item.acquiredAt || item.receivedAt)}
       </div>
     </div>
   );

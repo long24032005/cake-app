@@ -5,9 +5,10 @@ import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAppStore } from '../store/useAppStore';
 import { SavingsBookCard } from '../components/SavingsBookCard';
+import { GatoEduModal } from '../components/GatoEduModal';
 
 // Gato Egg Widget
-function GatoWidget({ onGoToPetApp }: { onGoToPetApp: () => void }) {
+function GatoWidget({ onGoToPetApp, onShowEdu }: { onGoToPetApp: () => void; onShowEdu: () => void }) {
   return (
     <motion.div
       onClick={onGoToPetApp}
@@ -42,7 +43,19 @@ function GatoWidget({ onGoToPetApp }: { onGoToPetApp: () => void }) {
       </div>
 
       <div style={{ flex: 1, zIndex: 1 }}>
-        <div style={{ fontSize: 16, fontWeight: 800, color: '#fff', marginBottom: 4 }}>Nuôi Gato cùng bạn</div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <div style={{ fontSize: 16, fontWeight: 800, color: '#fff' }}>Nuôi Gato cùng bạn</div>
+          <button
+            onClick={(e) => { e.stopPropagation(); onShowEdu(); }}
+            style={{
+              width: 18, height: 18, borderRadius: '50%',
+              background: 'rgba(255,255,255,0.15)', border: 'none',
+              color: 'rgba(255,255,255,0.6)', fontSize: 11,
+              fontWeight: 800, cursor: 'pointer', display: 'flex',
+              alignItems: 'center', justifyContent: 'center', padding: 0
+            }}
+          >?</button>
+        </div>
         <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.8)' }}>Tích điểm mỗi ngày, mở quà mỗi mốc 🎁</div>
       </div>
 
@@ -65,6 +78,7 @@ export function CakeSavingsScreen({
   onManageBooks: () => void;
 }) {
   const [masked, setMasked] = useState(true);
+  const [isEduOpen, setIsEduOpen] = useState(false);
   const allBooks = useAppStore(s => s.user.savingsBooks);
   const inventory = useAppStore(s => s.user.inventory);
 
@@ -107,7 +121,10 @@ export function CakeSavingsScreen({
       </div>
 
       {/* Gato Widget */}
-      <GatoWidget onGoToPetApp={onGoToPetApp} />
+      <GatoWidget onGoToPetApp={onGoToPetApp} onShowEdu={() => setIsEduOpen(true)} />
+
+      {/* Edu Modal */}
+      <GatoEduModal isOpen={isEduOpen} onClose={() => setIsEduOpen(false)} />
 
       {/* Mở sổ tiết kiệm mới */}
       <div style={{ margin: '24px 20px 0' }}>

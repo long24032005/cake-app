@@ -40,7 +40,16 @@ export function createInitialUser(): User {
     },
 
     savingsBooks: [],
-    inventory: [],
+    inventory: [
+      { instanceId: 'inst_1', itemId: 'cat_ears', type: 'pet_accessory', receivedAt: today },
+      { instanceId: 'inst_2', itemId: 'heart_glasses', type: 'pet_accessory', receivedAt: today },
+      { instanceId: 'inst_3', itemId: 'bow_pink', type: 'pet_accessory', receivedAt: today },
+      { instanceId: 'inst_4', itemId: 'angel_wings', type: 'pet_accessory', receivedAt: today },
+      { instanceId: 'inst_5', itemId: 'princess_crown', type: 'pet_accessory', receivedAt: today },
+      { instanceId: 'inst_6', itemId: 'voucher_30k', type: 'voucher', receivedAt: today, value: 30000, expiresAt: '2026-06-15' },
+      { instanceId: 'inst_7', itemId: 'pet_frame_gold', type: 'blind_bag_item', receivedAt: today },
+      { instanceId: 'inst_8', itemId: 'voucher_50k', type: 'voucher', receivedAt: today, value: 50000, expiresAt: '2026-06-15' },
+    ],
     notifications: [],
   };
 }
@@ -106,8 +115,8 @@ export function createDemoAccumulateBook(overrides?: Partial<{
     bookId: `book_acc_${Date.now()}`,
     bookType: 'accumulate',
     status: 'active',
-    principalAmount: 0,
-    currentBalance: 0,
+    principalAmount: 500_000,
+    currentBalance: 500_000,
     interestRate: rate,
     termMonths: totalPeriods,
     startDate: today,
@@ -119,7 +128,7 @@ export function createDemoAccumulateBook(overrides?: Partial<{
       periodHistory: [],
     },
     pointTracking: {
-      balanceHistory: [],
+      balanceHistory: [{ date: today, balance: 500_000 }],
       lockedPoints: 0,
       runningPoints: 0,
       commitmentBonusPoints: 0,

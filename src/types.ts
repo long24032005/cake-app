@@ -78,6 +78,12 @@ export interface AccumulatePeriodEntry {
   isValid: boolean;
 }
 
+export interface AutoDepositSettings {
+  enabled: boolean;
+  amount: number;
+  dayOfMonth: number | 'start' | 'end';
+}
+
 export interface AccumulateInfo {
   /** Số tiền gửi góp hàng kỳ mục tiêu */
   targetMonthlyAmount: number;
@@ -86,6 +92,8 @@ export interface AccumulateInfo {
   /** Số kỳ đã hoàn thành hợp lệ (gửi >= 80% target) */
   completedPeriods: number;
   periodHistory: AccumulatePeriodEntry[];
+  /** Cài đặt tự động gửi góp */
+  autoDeposit?: AutoDepositSettings;
 }
 
 export interface BalanceHistoryEntry {

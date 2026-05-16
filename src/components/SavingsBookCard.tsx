@@ -161,6 +161,15 @@ export function SavingsBookCard({ book }: Props) {
                 Đóng góp: +{dailyPts} điểm/ngày
               </div>
             )}
+            {book.accumulate?.autoDeposit?.enabled && (
+              <div style={{
+                fontSize: 10, color: 'var(--color-text-blue)', fontWeight: 700,
+                display: 'flex', alignItems: 'center', gap: 4, marginBottom: 4,
+                background: 'rgba(91,200,245,0.08)', padding: '2px 6px', borderRadius: 4, alignSelf: 'flex-start'
+              }}>
+                🔄 Tự động nạp: {fmtVND(book.accumulate.autoDeposit.amount)}/tháng
+              </div>
+            )}
             <div style={{ fontSize: 11, color: 'var(--color-text-secondary)' }}>
               Đáo hạn: <span style={{ color: 'var(--color-text-blue)' }}>{fmtDate(book.maturityDate)}</span>
               {book.status === 'active' && <span style={{ color: 'var(--color-text-secondary)' }}> · còn {left} ngày</span>}
