@@ -57,12 +57,61 @@ function SparkStar({ x, y, delay }: { x: number; y: number; delay: number }) {
   );
 }
 
+interface Offsets {
+  head: { x: number; y: number };
+  eyes: { x: number; y: number };
+  neck: { x: number; y: number };
+  chest: { x: number; y: number };
+  back: { x: number; y: number };
+}
+
+function getOffsets(form: PetForm): Offsets {
+  if (form === 'baby') {
+    return {
+      head: { x: 100, y: 55 },
+      eyes: { x: 100, y: 90 },
+      neck: { x: 100, y: 110 },
+      chest: { x: 100, y: 122 },
+      back: { x: 100, y: 98 },
+    };
+  }
+  if (form === 'teen') {
+    return {
+      head: { x: 100, y: 48 },
+      eyes: { x: 100, y: 78 },
+      neck: { x: 100, y: 114 },
+      chest: { x: 100, y: 122 },
+      back: { x: 100, y: 95 },
+    };
+  }
+  // default for adult, reborn_1, reborn_2
+  return {
+    head: { x: 100, y: 44 },
+    eyes: { x: 100, y: 78 },
+    neck: { x: 100, y: 114 },
+    chest: { x: 100, y: 122 },
+    back: { x: 100, y: 95 },
+  };
+}
+
+function getHairClipOffset(form: PetForm, type: 'star' | 'daisy') {
+  if (type === 'star') {
+    if (form === 'baby') return { x: 122, y: 78 };
+    if (form === 'teen') return { x: 128, y: 62 };
+    return { x: 128, y: 60 };
+  } else {
+    if (form === 'baby') return { x: 75, y: 68 };
+    if (form === 'teen') return { x: 70, y: 52 };
+    return { x: 70, y: 50 };
+  }
+}
+
 export function PetDisplay({
   form, mood, accessories = [], size = 'large',
   progressPoints = 0, roundCompleteThreshold = 60_000,
 }: PetDisplayProps) {
   const [showMoodPopup, setShowMoodPopup] = useState(false);
-  const dim = size === 'large' ? 200 : 80;
+  const dim = size === 'large' ? 320 : 130;
 
   const fillColor = FORM_COLOR[form];
   const strokeColor = FORM_STROKE[form];
@@ -84,7 +133,7 @@ export function PetDisplay({
       {/* Glow background — spec C2 */}
       {size === 'large' && (
         <div className="pet-glow" style={{
-          position: 'absolute', width: 260, height: 260,
+          position: 'absolute', width: 380, height: 380,
           borderRadius: '50%',
           background: 'radial-gradient(circle, rgba(255,45,140,0.22) 0%, rgba(255,45,140,0) 70%)',
           top: '50%', left: '50%', transform: 'translate(-50%,-50%)',
@@ -131,53 +180,31 @@ export function PetDisplay({
             />
           )}
 
-          {/* Cat ears — teen / adult / reborn */}
-          {form !== 'baby' && (
-            <>
-              <polygon points="55,75 70,38 88,72" fill={strokeColor} />
-              <polygon points="112,72 130,38 145,75" fill={strokeColor} />
-              <polygon points="60,72 70,48 84,70" fill={fillColor} />
-              <polygon points="116,70 130,48 140,72" fill={fillColor} />
-            </>
-          )}
-
-          {/* Main body */}
-          <circle cx="100" cy="105" r="72"
-            fill={`url(#petGrad-${form})`} stroke={strokeColor} strokeWidth="2"
-            filter={form.startsWith('reborn') ? 'url(#petGlow)' : undefined}
-          />
-
-          {/* Eyes */}
-          <>
-            {mood === 'sleeping' ? (
-              // Closed eyes — arc lines
-              <>
-                <path d="M74 100 Q82 93 90 100" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" />
-                <path d="M110 100 Q118 93 126 100" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" />
-              </>
-            ) : (
-              // Open eyes
-              <>
-                <circle cx="82" cy="100" r={form === 'baby' ? 11 : 8} fill="white" />
-                <circle cx="118" cy="100" r={form === 'baby' ? 11 : 8} fill="white" />
-                <circle cx="84" cy="101" r={form === 'baby' ? 6 : 4.5} fill="#1A1635" />
-                <circle cx="120" cy="101" r={form === 'baby' ? 6 : 4.5} fill="#1A1635" />
-                {/* Shine */}
-                <circle cx="86" cy="98" r="1.5" fill="white" />
-                <circle cx="122" cy="98" r="1.5" fill="white" />
-              </>
-            )}
-          </>
-
-          {/* Nose + mouth */}
-          {form !== 'baby' && (
-            <>
-              <ellipse cx="100" cy="113" rx="3" ry="2" fill={strokeColor} />
-              {mood === 'happy'
-                ? <path d="M90 120 Q100 130 110 120" fill="none" stroke={strokeColor} strokeWidth="2" strokeLinecap="round" />
-                : <path d="M92 120 Q100 125 108 120" fill="none" stroke={strokeColor} strokeWidth="2" strokeLinecap="round" />
+          {/* Main body / Mascot Image */}
+          {form === 'egg' ? (
+            /* Render a smooth pulsing pink egg shape */
+            <motion.ellipse
+              cx="100" cy="110" rx="55" ry="70"
+              fill="url(#petGrad-egg)" stroke="#CCCCCC" strokeWidth="2.5"
+              animate={{ rotate: [-3, 3, -3], scale: [1, 1.02, 1] }}
+              transition={{ repeat: Infinity, duration: 2, ease: "easeInOut" }}
+              style={{ transformOrigin: '100px 110px' }}
+            />
+          ) : (
+            /* Render the beautiful new custom Gato mascot transparent PNG images */
+            <image
+              href={
+                form === 'baby'
+                  ? '/gato-baby.png'
+                  : form === 'teen'
+                  ? '/gato-teen.png'
+                  : '/gato-adult.png' /* adult, reborn_1, reborn_2 */
               }
-            </>
+              x="20"
+              y="20"
+              width="160"
+              height="160"
+            />
           )}
 
           {/* reborn_2 crown */}
@@ -221,54 +248,71 @@ export function PetDisplay({
             );
             if (accId === 'bow_pink' || accId === 'bow_pastel') {
               const color = accId === 'bow_pink' ? '#FF2D8C' : '#D1C4E9';
+              const offsets = getOffsets(form);
               return (
-                <g key={accId} transform="translate(100, 140) scale(0.8)">
+                <g key={accId} transform={`translate(${offsets.neck.x}, ${offsets.neck.y}) scale(0.8)`}>
                   <circle cx="-15" cy="0" r="15" fill={color} stroke="#fff" strokeWidth="1" />
                   <circle cx="15" cy="0" r="15" fill={color} stroke="#fff" strokeWidth="1" />
                   <circle cx="0" cy="0" r="8" fill={color} stroke="#fff" strokeWidth="2" />
                 </g>
               );
             }
-            if (accId === 'heart_glasses') return (
-              <g key={accId} transform="translate(100, 100)">
-                <path d="M-40 0 Q-20 -25 0 0 Q20 -25 40 0" fill="none" stroke="#FF2D8C" strokeWidth="3" />
-                <path d="M-35 0 A15 15 0 1 0 -5 0 A15 15 0 1 0 -35 0" fill="rgba(255,45,140,0.3)" stroke="#FF2D8C" strokeWidth="2" />
-                <path d="M5 0 A15 15 0 1 0 35 0 A15 15 0 1 0 5 0" fill="rgba(255,45,140,0.3)" stroke="#FF2D8C" strokeWidth="2" />
-              </g>
-            );
-            if (accId === 'angel_wings' || accId === 'wings_small') {
-              const scale = accId === 'angel_wings' ? 1.2 : 0.8;
+            if (accId === 'heart_glasses') {
+              const offsets = getOffsets(form);
               return (
-                <g key={accId} transform={`translate(100, 105) scale(${scale})`} opacity="0.8">
-                  <path d="M-70 -20 Q-100 -50 -130 0 Q-100 20 -70 10 Z" fill="#fff" stroke="#eee" strokeWidth="1" />
-                  <path d="M70 -20 Q100 -50 130 0 Q100 20 70 10 Z" fill="#fff" stroke="#eee" strokeWidth="1" />
+                <g key={accId} transform={`translate(${offsets.eyes.x}, ${offsets.eyes.y})`}>
+                  <path d="M-40 0 Q-20 -25 0 0 Q20 -25 40 0" fill="none" stroke="#FF2D8C" strokeWidth="3" />
+                  <path d="M-35 0 A15 15 0 1 0 -5 0 A15 15 0 1 0 -35 0" fill="rgba(255,45,140,0.3)" stroke="#FF2D8C" strokeWidth="2" />
+                  <path d="M5 0 A15 15 0 1 0 35 0 A15 15 0 1 0 5 0" fill="rgba(255,45,140,0.3)" stroke="#FF2D8C" strokeWidth="2" />
                 </g>
               );
             }
-            if (accId === 'princess_crown') return (
-              <g key={accId} transform="translate(100, 45) scale(0.7)">
-                <path d="M-40 0 L-30 -30 L-10 -10 L0 -40 L10 -10 L30 -30 L40 0 Z" fill="#FFD700" stroke="#B8860B" strokeWidth="2" />
-                <circle cx="0" cy="-40" r="4" fill="#FF2D8C" />
-              </g>
-            );
-            if (accId === 'pirate_hat') return (
-              <g key={accId} transform="translate(100, 50)">
-                <path d="M-60 0 Q0 -50 60 0 L60 10 L-60 10 Z" fill="#222" />
-                <circle cx="0" cy="-15" r="8" fill="#fff" />
-                <path d="M-4 -19 L4 -11 M-4 -11 L4 -19" stroke="#000" strokeWidth="2" />
-              </g>
-            );
-            if (accId === 'golden_bell') return (
-              <g key={accId} transform="translate(100, 145) scale(0.6)">
-                <path d="M-15 10 Q0 -30 15 10 Z" fill="#FFD700" stroke="#B8860B" strokeWidth="2" />
-                <circle cx="0" cy="12" r="5" fill="#FFD700" stroke="#B8860B" strokeWidth="2" />
-              </g>
-            );
-            if (accId === 'heart_badge') return (
-              <g key={accId} transform="translate(100, 130) scale(0.4)">
-                <path d="M0 20 Q-20 0 -20 -15 Q-20 -30 0 -30 Q20 -30 20 -15 Q20 0 0 20" fill="#FF4D4D" />
-              </g>
-            );
+            if (accId === 'angel_wings' || accId === 'wings_small') {
+              const scale = accId === 'angel_wings' ? 1.2 : 0.8;
+              const offsets = getOffsets(form);
+              return (
+                <g key={accId} transform={`translate(${offsets.back.x}, ${offsets.back.y}) scale(${scale})`} opacity="0.8">
+                  <path d="M-40 -20 Q-70 -50 -100 0 Q-70 20 -40 10 Z" fill="#fff" stroke="#eee" strokeWidth="1" />
+                  <path d="M40 -20 Q70 -50 100 0 Q70 20 40 10 Z" fill="#fff" stroke="#eee" strokeWidth="1" />
+                </g>
+              );
+            }
+            if (accId === 'princess_crown') {
+              const offsets = getOffsets(form);
+              return (
+                <g key={accId} transform={`translate(${offsets.head.x}, ${offsets.head.y}) scale(0.7)`}>
+                  <path d="M-40 0 L-30 -30 L-10 -10 L0 -40 L10 -10 L30 -30 L40 0 Z" fill="#FFD700" stroke="#B8860B" strokeWidth="2" />
+                  <circle cx="0" cy="-40" r="4" fill="#FF2D8C" />
+                </g>
+              );
+            }
+            if (accId === 'pirate_hat') {
+              const offsets = getOffsets(form);
+              return (
+                <g key={accId} transform={`translate(${offsets.head.x}, ${offsets.head.y})`}>
+                  <path d="M-60 0 Q0 -50 60 0 L60 10 L-60 10 Z" fill="#222" />
+                  <circle cx="0" cy="-15" r="8" fill="#fff" />
+                  <path d="M-4 -19 L4 -11 M-4 -11 L4 -19" stroke="#000" strokeWidth="2" />
+                </g>
+              );
+            }
+            if (accId === 'golden_bell') {
+              const offsets = getOffsets(form);
+              return (
+                <g key={accId} transform={`translate(${offsets.neck.x}, ${offsets.neck.y + 3}) scale(0.6)`}>
+                  <path d="M-15 10 Q0 -30 15 10 Z" fill="#FFD700" stroke="#B8860B" strokeWidth="2" />
+                  <circle cx="0" cy="12" r="5" fill="#FFD700" stroke="#B8860B" strokeWidth="2" />
+                </g>
+              );
+            }
+            if (accId === 'heart_badge') {
+              const offsets = getOffsets(form);
+              return (
+                <g key={accId} transform={`translate(${offsets.chest.x}, ${offsets.chest.y}) scale(0.4)`}>
+                  <path d="M0 20 Q-20 0 -20 -15 Q-20 -30 0 -30 Q20 -30 20 -15 Q20 0 0 20" fill="#FF4D4D" />
+                </g>
+              );
+            }
             if (accId === 'toy_mouse') return (
               <g key={accId} transform="translate(160, 160) scale(0.8)">
                 <circle cx="0" cy="0" r="10" fill="#AAA" />
@@ -282,30 +326,39 @@ export function PetDisplay({
                 <circle cx="2" cy="2" r="6" fill="#FFA500" />
               </g>
             );
-            if (accId === 'feather_band') return (
-              <g key={accId} transform="translate(100, 65)">
-                <rect x="-45" y="-5" width="90" height="10" rx="5" fill="#FF80AB" />
-                <path d="M30 -5 Q40 -35 50 -10" fill="#FFF" opacity="0.8" />
-                <path d="M20 -5 Q25 -30 35 -5" fill="#FFF" opacity="0.6" />
-              </g>
-            );
-            if (accId === 'pearl_necklace') return (
-              <g key={accId} transform="translate(100, 135)">
-                <circle cx="-24" cy="5" r="4" fill="#FFF" />
-                <circle cx="-12" cy="12" r="5" fill="#FFF" />
-                <circle cx="0" cy="15" r="6" fill="#FFF" />
-                <circle cx="12" cy="12" r="5" fill="#FFF" />
-                <circle cx="24" cy="5" r="4" fill="#FFF" />
-              </g>
-            );
-            if (accId === 'daisy_flower') return (
-              <g key={accId} transform="translate(60, 140) scale(0.5)">
-                <circle cx="0" cy="0" r="8" fill="#FFD700" />
-                {[0, 60, 120, 180, 240, 300].map(deg => (
-                  <ellipse key={deg} rx="15" ry="6" fill="#FFF" transform={`rotate(${deg}) translate(15, 0)`} />
-                ))}
-              </g>
-            );
+            if (accId === 'feather_band') {
+              const offsets = getOffsets(form);
+              return (
+                <g key={accId} transform={`translate(${offsets.head.x}, ${offsets.head.y + 14})`}>
+                  <rect x="-45" y="-5" width="90" height="10" rx="5" fill="#FF80AB" />
+                  <path d="M30 -5 Q40 -35 50 -10" fill="#FFF" opacity="0.8" />
+                  <path d="M20 -5 Q25 -30 35 -5" fill="#FFF" opacity="0.6" />
+                </g>
+              );
+            }
+            if (accId === 'pearl_necklace') {
+              const offsets = getOffsets(form);
+              return (
+                <g key={accId} transform={`translate(${offsets.neck.x}, ${offsets.neck.y - 1})`}>
+                  <circle cx="-24" cy="5" r="4" fill="#FFF" />
+                  <circle cx="-12" cy="12" r="5" fill="#FFF" />
+                  <circle cx="0" cy="15" r="6" fill="#FFF" />
+                  <circle cx="12" cy="12" r="5" fill="#FFF" />
+                  <circle cx="24" cy="5" r="4" fill="#FFF" />
+                </g>
+              );
+            }
+            if (accId === 'daisy_flower') {
+              const offset = getHairClipOffset(form, 'daisy');
+              return (
+                <g key={accId} transform={`translate(${offset.x}, ${offset.y}) scale(0.5)`}>
+                  <circle cx="0" cy="0" r="8" fill="#FFD700" />
+                  {[0, 60, 120, 180, 240, 300].map(deg => (
+                    <ellipse key={deg} rx="15" ry="6" fill="#FFF" transform={`rotate(${deg}) translate(15, 0)`} />
+                  ))}
+                </g>
+              );
+            }
             if (accId === 'diamond_bracelet') return (
               <g key={accId} transform="translate(140, 150) rotate(20)">
                 <rect x="-15" y="-3" width="30" height="6" rx="3" fill="#B0BEC5" />
@@ -340,17 +393,23 @@ export function PetDisplay({
                 <path d="M25 -2 L32 -2" stroke="#FFD54F" strokeWidth="2" />
               </g>
             );
-            if (accId === 'chef_hat') return (
-              <g key={accId} transform="translate(100, 45) scale(0.8)">
-                <path d="M-30 0 L30 0 L30 -15 Q30 -45 0 -45 Q-30 -45 -30 -15 Z" fill="#FFF" stroke="#DDD" />
-                <rect x="-30" y="-5" width="60" height="10" fill="#FFF" stroke="#DDD" />
-              </g>
-            );
-            if (accId === 'star_clip') return (
-              <g key={accId} transform="translate(125, 75) scale(0.5)">
-                <path d="M0 -30 L8 -10 L30 -10 L12 5 L18 25 L0 12 L-18 25 L-12 5 L-30 -10 L-8 -10 Z" fill="#FFEB3B" stroke="#FBC02D" strokeWidth="2" />
-              </g>
-            );
+            if (accId === 'chef_hat') {
+              const offsets = getOffsets(form);
+              return (
+                <g key={accId} transform={`translate(${offsets.head.x}, ${offsets.head.y}) scale(0.8)`}>
+                  <path d="M-30 0 L30 0 L30 -15 Q30 -45 0 -45 Q-30 -45 -30 -15 Z" fill="#FFF" stroke="#DDD" />
+                  <rect x="-30" y="-5" width="60" height="10" fill="#FFF" stroke="#DDD" />
+                </g>
+              );
+            }
+            if (accId === 'star_clip') {
+              const offset = getHairClipOffset(form, 'star');
+              return (
+                <g key={accId} transform={`translate(${offset.x}, ${offset.y}) scale(0.5)`}>
+                  <path d="M0 -30 L8 -10 L30 -10 L12 5 L18 25 L0 12 L-18 25 L-12 5 L-30 -10 L-8 -10 Z" fill="#FFEB3B" stroke="#FBC02D" strokeWidth="2" />
+                </g>
+              );
+            }
             if (accId === 'bunny_hug') return (
               <g key={accId} transform="translate(100, 165) scale(0.6)">
                 <circle cx="0" cy="0" r="25" fill="#FFF" stroke="#EEE" />
@@ -361,6 +420,28 @@ export function PetDisplay({
                 <circle cx="7" cy="-22" r="2" fill="#000" />
               </g>
             );
+            if (accId === 'hat_party') {
+              const offsets = getOffsets(form);
+              return (
+                <g key={accId} transform={`translate(${offsets.head.x}, ${offsets.head.y}) scale(0.8)`}>
+                  <polygon points="-20 0 0 -45 20 0" fill="#FF80C0" stroke="#FF2D8C" strokeWidth="1.5" />
+                  <circle cx="-5" cy="-15" r="3" fill="#FFE082" />
+                  <circle cx="5" cy="-25" r="2.5" fill="#80DEEA" />
+                  <circle cx="0" cy="-5" r="3.5" fill="#C5CAE9" />
+                  <circle cx="0" cy="-47" r="6" fill="#FFF" stroke="#FF2D8C" strokeWidth="1" />
+                </g>
+              );
+            }
+            if (accId === 'scarf_yellow') {
+              const offsets = getOffsets(form);
+              return (
+                <g key={accId} transform={`translate(${offsets.neck.x}, ${offsets.neck.y}) scale(0.8)`}>
+                  <rect x="-25" y="-6" width="50" height="12" rx="6" fill="#FFD54F" stroke="#F57F17" strokeWidth="1.5" />
+                  <path d="M12 4 Q18 10 14 26 L4 24 Q6 8 12 4" fill="#FFD54F" stroke="#F57F17" strokeWidth="1.5" />
+                  <path d="M4 4 Q-2 12 -2 24 L-10 22 Q-10 10 4 4" fill="#FFD54F" stroke="#F57F17" strokeWidth="1.5" />
+                </g>
+              );
+            }
             return null;
           })}
         </svg>

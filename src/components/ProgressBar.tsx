@@ -15,6 +15,7 @@ interface ProgressBarProps {
   progressPoints: number;
   runningPoints: number;
   milestoneHistory: MilestoneHistoryEntry[];
+  totalBonus?: number;
 }
 
 const ALL_MARKERS = [
@@ -69,7 +70,7 @@ function MarkerIcon({ tier, earned }: { tier: 'large' | 'mid' | 'small'; earned:
   );
 }
 
-export function ProgressBar({ progressPoints, runningPoints, milestoneHistory }: ProgressBarProps) {
+export function ProgressBar({ progressPoints, runningPoints, milestoneHistory, totalBonus = 0 }: ProgressBarProps) {
   const [selectedMarker, setSelectedMarker] = useState<typeof ALL_MARKERS[0] | null>(null);
 
   const earnedIds = new Set(milestoneHistory.map(h => h.milestoneId));
@@ -233,28 +234,85 @@ export function ProgressBar({ progressPoints, runningPoints, milestoneHistory }:
         )}
       </AnimatePresence>
 
-      {/* Points label — spec C2 "Điểm đã chốt: X ✓ | Đang tích: Y ~" */}
+      {/* 3 Compact Point Baskets (Horizontal Flex Row) */}
       <div style={{
-        display: 'flex', justifyContent: 'space-between',
-        fontSize: 11, color: 'var(--color-text-secondary)',
-        padding: '0 16px', marginTop: -4
+        display: 'flex',
+        gap: 6,
+        padding: '0 16px',
+        marginTop: 10,
+        marginBottom: 8,
       }}>
-        <span>
-          <span style={{ color: 'var(--color-primary-pink)', fontWeight: 700 }}>
-            {progressPoints.toLocaleString('vi-VN')}
-          </span> điểm ✓ &nbsp;|&nbsp;
-          <span style={{ color: 'rgba(255,128,192,0.8)' }}>
-            +{runningPoints.toLocaleString('vi-VN')}
-          </span> ~
-        </span>
-        {nextMilestone && (
-          <span style={{ color: 'var(--color-text-secondary)' }}>
-            còn <span style={{ color: 'var(--color-text-blue)', fontWeight: 600 }}>
-              {ptsToNext.toLocaleString('vi-VN')}
-            </span> đến {nextMilestone.id}
+        {/* Basket 1: Đang Tích */}
+        <div style={{
+          flex: 1,
+          background: 'rgba(155, 150, 200, 0.05)',
+          border: '1px solid rgba(155, 150, 200, 0.12)',
+          borderRadius: 8,
+          padding: '6px 8px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+        }} title="Điểm đang chạy hàng ngày, chưa chốt chu kỳ">
+          <span style={{ fontSize: 9, fontWeight: 700, color: '#B39DDB', display: 'flex', alignItems: 'center', gap: 2 }}>
+            <span>⏳</span> Tích lũy
           </span>
-        )}
+          <span style={{ fontSize: 11, fontWeight: 800, color: '#B39DDB' }}>
+            ~{runningPoints.toLocaleString('vi-VN')}
+          </span>
+        </div>
+
+        {/* Basket 2: Đã Chốt */}
+        <div style={{
+          flex: 1,
+          background: 'rgba(255, 45, 140, 0.05)',
+          border: '1px solid rgba(255, 45, 140, 0.15)',
+          borderRadius: 8,
+          padding: '6px 8px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+        }} title="Điểm đã chốt chu kỳ 30 ngày an toàn, dùng để leo mốc đổi quà">
+          <span style={{ fontSize: 9, fontWeight: 700, color: 'var(--color-primary-pink)', display: 'flex', alignItems: 'center', gap: 2 }}>
+            <span>✓</span> Đã chốt
+          </span>
+          <span style={{ fontSize: 11, fontWeight: 800, color: 'var(--color-primary-pink)' }}>
+            {progressPoints.toLocaleString('vi-VN')}
+          </span>
+        </div>
+
+        {/* Basket 3: Điểm Thưởng */}
+        <div style={{
+          flex: 1,
+          background: 'rgba(255, 215, 0, 0.03)',
+          border: '1px solid rgba(255, 215, 0, 0.12)',
+          borderRadius: 8,
+          padding: '6px 8px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+        }} title="Điểm thưởng cam kết nhận khi đáo hạn sổ tiết kiệm">
+          <span style={{ fontSize: 9, fontWeight: 700, color: '#FFD700', display: 'flex', alignItems: 'center', gap: 2 }}>
+            <span>🎁</span> Thưởng
+          </span>
+          <span style={{ fontSize: 11, fontWeight: 800, color: '#FFD700' }}>
+            {totalBonus.toLocaleString('vi-VN')}
+          </span>
+        </div>
       </div>
+
+      {/* Next milestone label */}
+      {nextMilestone && (
+        <div style={{
+          fontSize: 10,
+          color: 'var(--color-text-secondary)',
+          textAlign: 'right',
+          paddingRight: 16,
+          marginTop: 4,
+          opacity: 0.95
+        }}>
+          còn <span style={{ color: 'var(--color-text-blue)', fontWeight: 700 }}>{ptsToNext.toLocaleString('vi-VN')}</span> điểm đến <span style={{ fontWeight: 700, color: 'var(--color-text-primary)' }}>{nextMilestone.id}</span>
+        </div>
+      )}
     </div>
   );
 }

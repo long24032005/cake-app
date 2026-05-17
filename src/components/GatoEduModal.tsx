@@ -89,7 +89,11 @@ export function GatoEduModal({ isOpen, onClose }: Props) {
                   <div style={{ width: 24, fontSize: 16 }}>🎁</div>
                   <div>
                     <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text-blue)' }}>Điểm Thưởng (Bonus)</div>
-                    <div style={{ fontSize: 12, color: 'var(--color-text-secondary)' }}>Thưởng thêm cực lớn khi bạn hoàn thành chu kỳ hoặc giữ sổ đến ngày đáo hạn.</div>
+                    <div style={{ fontSize: 12, color: 'var(--color-text-secondary)', lineHeight: 1.5 }}>
+                      Thưởng thêm cực lớn để tăng tốc hành trình nhận quà:
+                      <br />• <strong style={{ color: '#FFE082' }}>Thưởng thêm 10%</strong> tổng điểm tích lũy của tháng đối với việc giữ tiền đủ 30 ngày liên tục không rút.
+                      <br />• <strong style={{ color: '#FFE082' }}>Thưởng thêm 20%</strong> tổng điểm tích lũy ở tháng đáo hạn nếu giữ tiền thành công đến hết kỳ hạn.
+                    </div>
                   </div>
                 </div>
               </div>
@@ -102,12 +106,19 @@ export function GatoEduModal({ isOpen, onClose }: Props) {
                 </p>
               </div>
 
-              {/* Section 4: Withdrawal */}
               <div style={{ borderLeft: '3px solid #FF6B6B', paddingLeft: 16 }}>
                 <div style={{ fontSize: 15, color: '#FF6B6B', fontWeight: 700, marginBottom: 8 }}>⚠️ Lưu ý khi rút tiền sớm</div>
-                <p style={{ fontSize: 13, color: 'var(--color-text-secondary)', margin: 0, lineHeight: 1.6 }}>
-                  Nếu bạn rút một phần hoặc tất toán sổ sớm, bạn sẽ bị trừ Điểm Đang tích và Điểm Thưởng tương ứng, dẫn đến chậm tiến độ đạt mốc nhận quà. Điểm Đã chốt sẽ không bao giờ bị trừ.
-                </p>
+                <div style={{ fontSize: 13, color: 'var(--color-text-secondary)', margin: 0, lineHeight: 1.6, display: 'flex', flexDirection: 'column', gap: 6 }}>
+                  <div>
+                    • <strong style={{ color: '#fff' }}>Rút một phần (tối đa 90% số dư)</strong>: Bạn <strong style={{ color: '#81C784' }}>KHÔNG bị trừ điểm</strong> đã tích lũy. Số dư còn lại vẫn tiếp tục sinh điểm bình thường (chỉ làm chậm tiến độ đạt mốc do số dư giảm).
+                  </div>
+                  <div>
+                    • <strong style={{ color: '#fff' }}>Tất toán sổ trước hạn (rút sạch tiền)</strong>: Bạn sẽ <strong style={{ color: '#FF8A80' }}>bị trừ toàn bộ Điểm Đang tích</strong> và <strong style={{ color: '#FF8A80' }}>mất toàn bộ Điểm Thưởng</strong> của chu kỳ đó.
+                  </div>
+                  <div>
+                    • <strong style={{ color: '#FFD54F' }}>Điểm Đã chốt (Locked)</strong>: Đây là tài sản vĩnh viễn của bạn, <strong style={{ color: '#81C784' }}>không bao giờ bị trừ</strong> dưới mọi hình thức!
+                  </div>
+                </div>
               </div>
 
             </div>

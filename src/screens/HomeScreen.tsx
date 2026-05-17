@@ -56,6 +56,7 @@ export function HomeScreen({ onGoToInventory, onGoToSavings, onGoToMilestoneMap,
 
   // Điểm hôm nay = tổng daily rate từ active books
   const dailyRate = activeBooks.reduce((sum, b) => sum + calculateDailyPoints(b), 0);
+  const totalBonus = savingsBooks.reduce((sum, b) => sum + b.pointTracking.commitmentBonusPoints, 0);
 
   return (
     <div style={{ padding: '0 0 16px' }}>
@@ -164,6 +165,7 @@ export function HomeScreen({ onGoToInventory, onGoToSavings, onGoToMilestoneMap,
           progressPoints={journey.progressPoints}
           runningPoints={journey.runningPoints}
           milestoneHistory={journey.milestoneHistory}
+          totalBonus={totalBonus}
         />
       </div>
 
