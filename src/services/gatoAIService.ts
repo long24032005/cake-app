@@ -207,17 +207,7 @@ export async function getChatbotResponse(
   },
   apiKey: string | null
 ): Promise<string> {
-  // 1. Fallback nếu không có API Key
-  if (!apiKey) {
-    console.log('[Gato AI] Chạy chế độ fallback cục bộ (No API Key)');
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        resolve(getLocalFallbackResponse(message, state.scenarioId, state.externalBankLinked));
-      }, 1000); // mô phỏng độ trễ 1s
-    });
-  }
-
-  // 2. Chạy Gemini API thật
+  // Chạy Gemini API thật
   const scenario = AI_SCENARIOS[state.scenarioId] || AI_SCENARIOS.impulsive_spender;
   
   // Xây dựng prompt bối cảnh (Context) gửi kèm
@@ -262,9 +252,10 @@ Quy tắc phân tích chuyên sâu:
   }));
   
   // Push tin nhắn hiện tại
+  const userMsgText = message;
   contents.push({
     role: 'user' as const,
-    parts: [{ text: message }]
+    parts: [{ text: userMsgText }]
   });
 
   try {
@@ -303,54 +294,56 @@ Quy tắc phân tích chuyên sâu:
       console.warn('[Gato AI] Không thể kết nối với Proxy API (đang chạy local hoặc dev server).');
     }
 
-    // 2. Nếu Proxy không khả dụng hoặc lỗi, gọi trực tiếp Google API
+    // 2. Nếu Proxy không khả dụng hoặc lỗi, gọi trực tiếp Google API bằng key client-side (chỉ khi có apiKey)
     if (!success) {
-      if (!apiKey) {
-        throw new Error('Local API Key is missing for direct Google API connection.');
-      }
-      
-      const apiKeys = apiKey.split(',').map(k => k.trim()).filter(Boolean);
-      let lastError = null;
+      if (apiKey) {
+        const apiKeys = apiKey.split(',').map(k => k.trim()).filter(Boolean);
+        let lastError = null;
 
-      for (const key of apiKeys) {
-        try {
-          console.log(`[Gato AI] Đang gọi trực tiếp Google API bằng key ...${key.slice(-6)}`);
-          const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${key}`;
-          const response = await fetch(endpoint, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              contents,
-              systemInstruction: {
-                parts: [{ text: systemInstruction }]
+        for (const key of apiKeys) {
+          try {
+            console.log(`[Gato AI] Đang gọi trực tiếp Google API bằng key ...${key.slice(-6)}`);
+            const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${key}`;
+            const response = await fetch(endpoint, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
               },
-              generationConfig: {
-                temperature: 0.7,
-                maxOutputTokens: 4000,
-              }
-            })
-          });
+              body: JSON.stringify({
+                contents,
+                systemInstruction: {
+                  parts: [{ text: systemInstruction }]
+                },
+                generationConfig: {
+                  temperature: 0.7,
+                  maxOutputTokens: 4000,
+                }
+              })
+            });
 
-          if (response.ok) {
-            data = await response.json();
-            success = true;
-            console.log(`[Gato AI] Gọi trực tiếp thành công với key kết thúc bằng ...${key.slice(-6)}`);
-            break;
-          } else {
-            const errText = await response.text();
-            console.warn(`[Gato AI] Key ...${key.slice(-6)} thất bại: status ${response.status}`);
-            lastError = `Status ${response.status} - ${errText}`;
+            if (response.ok) {
+              data = await response.json();
+              success = true;
+              console.log(`[Gato AI] Gọi trực tiếp thành công với key kết thúc bằng ...${key.slice(-6)}`);
+              break;
+            } else {
+              const errText = await response.text();
+              console.warn(`[Gato AI] Key ...${key.slice(-6)} thất bại: status ${response.status}`);
+              lastError = `Status ${response.status} - ${errText}`;
+            }
+          } catch (err: any) {
+            console.warn(`[Gato AI] Kết nối lỗi với key ...${key.slice(-6)}: ${err.message}`);
+            lastError = err.message;
           }
-        } catch (err: any) {
-          console.warn(`[Gato AI] Kết nối lỗi với key ...${key.slice(-6)}: ${err.message}`);
-          lastError = err.message;
         }
-      }
 
-      if (!success) {
-        throw new Error(`All direct Google API keys failed. Last error: ${lastError}`);
+        if (!success) {
+          throw new Error(`All direct Google API keys failed. Last error: ${lastError}`);
+        }
+      } else {
+        // Không có client apiKey và Proxy lỗi -> Chạy chế độ fallback cục bộ
+        console.log('[Gato AI] Không có API Key client và Proxy lỗi -> Chạy chế độ fallback cục bộ');
+        return getLocalFallbackResponse(message, state.scenarioId, state.externalBankLinked);
       }
     }
 
