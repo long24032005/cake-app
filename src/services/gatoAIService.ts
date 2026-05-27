@@ -268,32 +268,74 @@ Quy tắc phân tích chuyên sâu:
   });
 
   try {
-    const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
-    const response = await fetch(endpoint, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        contents,
-        systemInstruction: {
-          parts: [{ text: systemInstruction }]
+    // 1. Thử gọi qua Vercel Proxy API (để ẩn API Key trên Vercel)
+    console.log('[Gato AI] Thử kết nối qua Vercel Proxy API...');
+    let data;
+    let success = false;
+    
+    try {
+      const proxyResponse = await fetch('/api/chat', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': apiKey || '',
         },
-        generationConfig: {
-          temperature: 0.7,
-          maxOutputTokens: 4000,
-        }
-      })
-    });
+        body: JSON.stringify({
+          contents,
+          systemInstruction: {
+            parts: [{ text: systemInstruction }]
+          },
+          generationConfig: {
+            temperature: 0.7,
+            maxOutputTokens: 4000,
+          }
+        })
+      });
 
-    if (!response.ok) {
-      const errText = await response.text();
-      throw new Error(`API error: ${response.status} - ${errText}`);
+      if (proxyResponse.ok) {
+        data = await proxyResponse.json();
+        success = true;
+        console.log('[Gato AI] Kết nối qua Proxy API thành công.');
+      } else {
+        console.warn(`[Gato AI] Proxy API trả về mã lỗi: ${proxyResponse.status}`);
+      }
+    } catch (e) {
+      console.warn('[Gato AI] Không thể kết nối với Proxy API (đang chạy local hoặc dev server).');
     }
 
-    const data = await response.json();
+    // 2. Nếu Proxy không khả dụng hoặc lỗi, gọi trực tiếp Google API
+    if (!success) {
+      if (!apiKey) {
+        throw new Error('Local API Key is missing for direct Google API connection.');
+      }
+      console.log('[Gato AI] Đang gọi trực tiếp Google API...');
+      const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
+      const response = await fetch(endpoint, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          contents,
+          systemInstruction: {
+            parts: [{ text: systemInstruction }]
+          },
+          generationConfig: {
+            temperature: 0.7,
+            maxOutputTokens: 4000,
+          }
+        })
+      });
+
+      if (!response.ok) {
+        const errText = await response.text();
+        throw new Error(`Google API error: ${response.status} - ${errText}`);
+      }
+
+      data = await response.json();
+    }
+
     const botText = data.candidates?.[0]?.content?.parts?.[0]?.text;
-    
     if (!botText) {
       throw new Error('Invalid API response format');
     }
