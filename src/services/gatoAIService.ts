@@ -308,31 +308,50 @@ Quy tắc phân tích chuyên sâu:
       if (!apiKey) {
         throw new Error('Local API Key is missing for direct Google API connection.');
       }
-      console.log('[Gato AI] Đang gọi trực tiếp Google API...');
-      const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
-      const response = await fetch(endpoint, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          contents,
-          systemInstruction: {
-            parts: [{ text: systemInstruction }]
-          },
-          generationConfig: {
-            temperature: 0.7,
-            maxOutputTokens: 4000,
-          }
-        })
-      });
+      
+      const apiKeys = apiKey.split(',').map(k => k.trim()).filter(Boolean);
+      let lastError = null;
 
-      if (!response.ok) {
-        const errText = await response.text();
-        throw new Error(`Google API error: ${response.status} - ${errText}`);
+      for (const key of apiKeys) {
+        try {
+          console.log(`[Gato AI] Đang gọi trực tiếp Google API bằng key ...${key.slice(-6)}`);
+          const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${key}`;
+          const response = await fetch(endpoint, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              contents,
+              systemInstruction: {
+                parts: [{ text: systemInstruction }]
+              },
+              generationConfig: {
+                temperature: 0.7,
+                maxOutputTokens: 4000,
+              }
+            })
+          });
+
+          if (response.ok) {
+            data = await response.json();
+            success = true;
+            console.log(`[Gato AI] Gọi trực tiếp thành công với key kết thúc bằng ...${key.slice(-6)}`);
+            break;
+          } else {
+            const errText = await response.text();
+            console.warn(`[Gato AI] Key ...${key.slice(-6)} thất bại: status ${response.status}`);
+            lastError = `Status ${response.status} - ${errText}`;
+          }
+        } catch (err: any) {
+          console.warn(`[Gato AI] Kết nối lỗi với key ...${key.slice(-6)}: ${err.message}`);
+          lastError = err.message;
+        }
       }
 
-      data = await response.json();
+      if (!success) {
+        throw new Error(`All direct Google API keys failed. Last error: ${lastError}`);
+      }
     }
 
     const botText = data.candidates?.[0]?.content?.parts?.[0]?.text;
