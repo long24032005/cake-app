@@ -74,7 +74,7 @@ function GatoPointsPreview({ initialAmount, monthlyTarget, termMonths, currentPr
   let totalPts = 0;
   for (let m = 0; m < termMonths; m++) {
     const currentBalance = initialAmount + m * monthlyTarget;
-    const dailyPts = Math.floor(currentBalance / 100_000);
+    const dailyPts = Math.floor(currentBalance / 10_000);
     totalPts += dailyPts * 30;
   }
 

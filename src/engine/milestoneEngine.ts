@@ -118,6 +118,20 @@ function addMilestoneRewardToUser(user: User, milestone: AnyMilestone): void {
         receivedAt: now,
       });
     }
+
+    // Thưởng thêm voucher lãi suất nếu là mốc lớn cuối cùng L5
+    if (milestone.id === 'L5') {
+      const bonusRate = parseFloat((1.3 + (user.journey.currentRound - 1) * 0.01).toFixed(2));
+      user.inventory.push({
+        instanceId: generateId(),
+        type: 'voucher',
+        itemId: 'voucher_interest_rate',
+        value: bonusRate,
+        expiresAt: expiryDate.toISOString(),
+        source: milestone.id,
+        receivedAt: now,
+      });
+    }
   } else if (
     milestone.rewardType === 'pet_accessory' ||
     milestone.rewardType === 'badge'

@@ -57,7 +57,7 @@ function fmtDate(iso: string) {
 function GatoPointsPreview({ amount, termMonths, currentProgressPoints }: {
   amount: number; termMonths: number; currentProgressPoints: number;
 }) {
-  const dailyPts = Math.floor(amount / 100_000);
+  const dailyPts = Math.floor(amount / 10_000);
   const totalPts = dailyPts * 30 * termMonths;
 
 

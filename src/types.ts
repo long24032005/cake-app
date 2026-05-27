@@ -182,6 +182,23 @@ export interface Notification {
 // User (root object)
 // ─────────────────────────────────────────────────────────────
 
+export interface ChatMessage {
+  id: string;
+  sender: 'user' | 'bot';
+  text: string;
+  timestamp: string;
+}
+
+export interface Transaction {
+  id: string;
+  amount: number;
+  type: 'income' | 'expense';
+  category: string;     // Ăn uống, Giải trí, Mua sắm, Di chuyển, Thu nhập, Tiết kiệm
+  description: string;
+  date: string;         // YYYY-MM-DD
+  bank: string;         // Cake, Techcombank, Vietcombank,...
+}
+
 export interface User {
   userId: string;
   displayName: string;
@@ -190,4 +207,12 @@ export interface User {
   savingsBooks: SavingsBook[];
   inventory: InventoryItem[];
   notifications: Notification[];
+
+  // Chatbot Gato AI
+  geminiApiKey: string | null;
+  currentScenarioId: string;
+  externalBankLinked: boolean;
+  chatHistory: ChatMessage[];
+  transactions: Transaction[];
+  externalTransactions: Transaction[];
 }

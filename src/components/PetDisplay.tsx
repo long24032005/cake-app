@@ -197,8 +197,8 @@ export function PetDisplay({
                 form === 'baby'
                   ? '/gato-baby.png'
                   : form === 'teen'
-                  ? '/gato-teen.png'
-                  : '/gato-adult.png' /* adult, reborn_1, reborn_2 */
+                    ? '/gato-teen.png'
+                    : '/gato-adult.png' /* adult, reborn_1, reborn_2 */
               }
               x="20"
               y="20"
@@ -381,9 +381,9 @@ export function PetDisplay({
             );
             if (accId === 'sparkle_effect') return (
               <g key={accId}>
-                <motion.text x="40" y="60" fontSize="20" animate={{ opacity: [0,1,0] }} transition={{ repeat: Infinity, duration: 1.5 }}>✨</motion.text>
-                <motion.text x="160" y="80" fontSize="16" animate={{ opacity: [0,1,0] }} transition={{ repeat: Infinity, duration: 1.5, delay: 0.5 }}>✨</motion.text>
-                <motion.text x="140" y="170" fontSize="18" animate={{ opacity: [0,1,0] }} transition={{ repeat: Infinity, duration: 1.5, delay: 1 }}>✨</motion.text>
+                <motion.text x="40" y="60" fontSize="20" animate={{ opacity: [0, 1, 0] }} transition={{ repeat: Infinity, duration: 1.5 }}>✨</motion.text>
+                <motion.text x="160" y="80" fontSize="16" animate={{ opacity: [0, 1, 0] }} transition={{ repeat: Infinity, duration: 1.5, delay: 0.5 }}>✨</motion.text>
+                <motion.text x="140" y="170" fontSize="18" animate={{ opacity: [0, 1, 0] }} transition={{ repeat: Infinity, duration: 1.5, delay: 1 }}>✨</motion.text>
               </g>
             );
             if (accId === 'little_bird') return (

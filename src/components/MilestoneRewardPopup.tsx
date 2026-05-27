@@ -8,6 +8,7 @@
 import { motion } from 'framer-motion';
 import { useMemo, useState } from 'react';
 import type { AnyMilestone } from '../config';
+import { useAppStore } from '../store/useAppStore';
 
 // ── Blind bag item human-readable labels
 const BAG_ITEM_LABELS: Record<string, { label: string; icon: string }> = {
@@ -168,9 +169,15 @@ interface MilestoneRewardPopupProps {
 export function MilestoneRewardPopup({
   milestone, blindBagItem, onClose, onViewInventory,
 }: MilestoneRewardPopupProps) {
+  const user = useAppStore(s => s.user);
   const tier    = tierOf(milestone.id);
   const reward  = rewardLabel(milestone);
   const hasBag  = !!(blindBagItem && (milestone as any).blindBagEnabled);
+
+  // Tìm voucher lãi suất cộng thêm của mốc này (nếu có)
+  const interestVoucher = user.inventory.find(
+    i => i.source === milestone.id && i.itemId === 'voucher_interest_rate'
+  );
 
   return (
     <div style={{
@@ -264,6 +271,25 @@ export function MilestoneRewardPopup({
             </div>
           </div>
         </div>
+
+        {/* Thưởng thêm Voucher Lãi suất mốc L5 */}
+        {interestVoucher && (
+          <div style={{
+            width: '100%', background: 'rgba(78,205,164,0.12)',
+            border: '1px solid rgba(78,205,164,0.4)',
+            borderRadius: 14, padding: '10px 16px',
+            display: 'flex', alignItems: 'center', gap: 12, zIndex: 1,
+            marginTop: -6,
+          }}>
+            <span style={{ fontSize: 28 }}>📈</span>
+            <div style={{ textAlign: 'left' }}>
+              <div style={{ fontSize: 10, color: 'var(--color-text-secondary)', marginBottom: 2 }}>Thưởng thêm hoàn vòng</div>
+              <div style={{ fontSize: 14, fontWeight: 800, color: 'var(--color-text-green)' }}>
+                Voucher Lãi suất +{interestVoucher.value}%
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Blind bag section */}
         {hasBag && blindBagItem && (

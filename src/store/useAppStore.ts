@@ -52,6 +52,9 @@ import {
 // Config
 import { ALL_MILESTONES } from '../config';
 
+// Chatbot Gato AI Service
+import { AI_SCENARIOS, getChatbotResponse } from '../services/gatoAIService';
+
 // ─────────────────────────────────────────────────────────────
 // Store State Type
 // ─────────────────────────────────────────────────────────────
@@ -156,6 +159,14 @@ export interface AppState {
 
   /** Reset toàn bộ về state ban đầu (Kịch bản 1) */
   hardReset: () => void;
+
+  // ── Chatbot Gato AI ───────────────────────────────────────
+  setGeminiApiKey: (key: string | null) => void;
+  sendChatMessage: (text: string) => Promise<void>;
+  linkExternalBank: () => void;
+  toggleExternalBank: (linked?: boolean) => void;
+  setScenario: (scenarioId: string) => void;
+  clearChatHistory: () => void;
 }
 
 // ─────────────────────────────────────────────────────────────
@@ -222,6 +233,28 @@ export const useAppStore = create<AppState>()(
       violateBook: (bookId, violationType = 'early_withdrawal') => {
         const { user, simDate } = get();
         const next = processViolation(user, bookId, violationType, simDate);
+
+        // Bắn thông báo Notification (Cảnh báo chủ động đa kênh)
+        const book = user.savingsBooks.find(b => b.bookId === bookId);
+        const bookLabel = book ? (book.bookType === 'standard' ? 'tiết kiệm Tiêu chuẩn' : 'tiết kiệm Tích lũy') : 'sổ tiết kiệm';
+        const notiMsg = `Gato AI ⚠️: Ôi không! Bạn vừa tất toán sớm ${bookLabel}. Điểm tích lũy running đã bị trừ và Gato đang rất buồn! 😿`;
+        
+        next.notifications.push({
+          id: `noti_viol_${Date.now()}`,
+          type: 'violation',
+          message: notiMsg,
+          createdAt: new Date().toISOString(),
+          read: false,
+        });
+
+        // Bắn thêm tin nhắn vào chatbot
+        next.chatHistory.push({
+          id: `chat_viol_${Date.now()}`,
+          sender: 'bot',
+          text: `😿 Mình vừa phát hiện bạn đã tất toán sớm sổ tiết kiệm. Điểm đang tích (Running points) của sổ đã bị trừ theo tỉ lệ hoàn thành cam kết. Tuy nhiên, điểm chốt (Locked points) vẫn được bảo toàn tuyệt đối! Hãy cố gắng duy trì kỷ luật ở sổ tiếp theo nhé! 💪`,
+          timestamp: new Date().toISOString(),
+        });
+
         set({ user: next });
       },
 
@@ -492,6 +525,137 @@ export const useAppStore = create<AppState>()(
         });
         console.log('[hardReset] State đã reset về ban đầu.');
       },
+
+      setGeminiApiKey: (key) => {
+        set((state) => ({
+          user: {
+            ...state.user,
+            geminiApiKey: key,
+          },
+        }));
+        console.log(`[Gato AI] API Key updated.`);
+      },
+
+      sendChatMessage: async (text) => {
+        const { user } = get();
+        const userMsg = {
+          id: `chat_${Date.now()}_u`,
+          sender: 'user' as const,
+          text,
+          timestamp: new Date().toISOString(),
+        };
+
+        const updatedHistory = [...user.chatHistory, userMsg];
+        set((state) => ({
+          user: {
+            ...state.user,
+            chatHistory: updatedHistory,
+          },
+        }));
+
+        try {
+          const responseText = await getChatbotResponse(
+            text,
+            updatedHistory,
+            {
+              scenarioId: user.currentScenarioId,
+              externalBankLinked: user.externalBankLinked,
+              transactions: user.transactions,
+              externalTransactions: user.externalTransactions,
+            },
+            user.geminiApiKey
+          );
+
+          const botMsg = {
+            id: `chat_${Date.now()}_b`,
+            sender: 'bot' as const,
+            text: responseText,
+            timestamp: new Date().toISOString(),
+          };
+
+          set((state) => ({
+            user: {
+              ...state.user,
+              chatHistory: [...state.user.chatHistory, botMsg],
+            },
+          }));
+        } catch (err) {
+          console.error('[Gato AI] Lỗi gửi chat:', err);
+        }
+      },
+
+      linkExternalBank: () => {
+        const { user } = get();
+        if (user.externalBankLinked) return;
+
+        set((state) => ({
+          user: {
+            ...state.user,
+            externalBankLinked: true,
+            chatHistory: [
+              ...state.user.chatHistory,
+              {
+                id: `chat_${Date.now()}_link`,
+                sender: 'bot' as const,
+                text: `🎉 Liên kết thành công ngân hàng ngoài! Gato AI đã đồng bộ dữ liệu giao dịch của bạn để bắt đầu phân tích tổng hợp.`,
+                timestamp: new Date().toISOString(),
+              }
+            ]
+          },
+        }));
+        console.log('[Gato AI] Liên kết ngân hàng ngoài thành công.');
+      },
+
+      toggleExternalBank: (linked) => {
+        set((state) => ({
+          user: {
+            ...state.user,
+            externalBankLinked: linked !== undefined ? linked : !state.user.externalBankLinked,
+          },
+        }));
+        console.log(`[Gato AI] External bank link status toggled.`);
+      },
+
+      setScenario: (scenarioId) => {
+        const scenario = AI_SCENARIOS[scenarioId];
+        if (!scenario) return;
+
+        set((state) => ({
+          user: {
+            ...state.user,
+            currentScenarioId: scenarioId,
+            transactions: scenario.transactions,
+            externalTransactions: scenario.externalTransactions,
+            chatHistory: [
+              {
+                id: `chat_init_${Date.now()}`,
+                sender: 'bot' as const,
+                text: scenario.initialAiGreeting,
+                timestamp: new Date().toISOString(),
+              }
+            ]
+          },
+        }));
+        console.log(`[Gato AI] Scenario changed to: ${scenarioId}`);
+      },
+
+      clearChatHistory: () => {
+        const { user } = get();
+        const scenario = AI_SCENARIOS[user.currentScenarioId] || AI_SCENARIOS.impulsive_spender;
+        set((state) => ({
+          user: {
+            ...state.user,
+            chatHistory: [
+              {
+                id: `chat_init_${Date.now()}`,
+                sender: 'bot' as const,
+                text: scenario.initialAiGreeting,
+                timestamp: new Date().toISOString(),
+              }
+            ]
+          },
+        }));
+      },
     }),
     {
       name: 'cake-pet-savings-store',  // localStorage key
@@ -501,6 +665,49 @@ export const useAppStore = create<AppState>()(
         user: state.user,
         simDate: state.simDate,
       }),
+      merge: (persistedState: any, currentState) => {
+        if (!persistedState) return currentState;
+        const mergedUser = {
+          ...currentState.user,
+          ...persistedState.user,
+          petState: {
+            ...currentState.user.petState,
+            ...(persistedState.user?.petState || {}),
+          },
+          journey: {
+            ...currentState.user.journey,
+            ...(persistedState.user?.journey || {}),
+          },
+        };
+
+        // Gato AI fields default validation
+        if (persistedState.user) {
+          if (persistedState.user.geminiApiKey === undefined) {
+            mergedUser.geminiApiKey = currentState.user.geminiApiKey;
+          }
+          if (persistedState.user.currentScenarioId === undefined) {
+            mergedUser.currentScenarioId = currentState.user.currentScenarioId;
+          }
+          if (persistedState.user.externalBankLinked === undefined) {
+            mergedUser.externalBankLinked = currentState.user.externalBankLinked;
+          }
+          if (!persistedState.user.chatHistory) {
+            mergedUser.chatHistory = currentState.user.chatHistory;
+          }
+          if (!persistedState.user.transactions) {
+            mergedUser.transactions = currentState.user.transactions;
+          }
+          if (!persistedState.user.externalTransactions) {
+            mergedUser.externalTransactions = currentState.user.externalTransactions;
+          }
+        }
+
+        return {
+          ...currentState,
+          ...persistedState,
+          user: mergedUser,
+        };
+      },
     },
   ),
 );

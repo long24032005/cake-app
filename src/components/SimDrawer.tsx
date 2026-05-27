@@ -3,12 +3,13 @@
  * Drawer từ cạnh phải, width 320px, bg #0D0B1F, border-left 2px #FF2D8C
  * Kích hoạt: 5 tap logo | swipe phải | ?sim=true
  */
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAppStore } from '../store/useAppStore';
 import { ALL_MILESTONES, ROUND_COMPLETE_THRESHOLD, LOCK_CYCLE_DAYS } from '../config';
 import { toISODate, addDays } from '../engine/pointEngine';
 import type { PetForm } from '../types';
+import { AI_SCENARIOS } from '../services/gatoAIService';
 
 // ── Sub-UI helpers ────────────────────────────────────────
 const SH = ({ t }: { t: string }) => (
@@ -70,6 +71,144 @@ function S2Points() {
       </div>
       <div style={{ marginTop:6 }}>
         <SimBtn id="sim-reset-pts" full label="⚠ Reset điểm về 0" variant="danger" onClick={() => { if(confirm('Reset progressPoints + runningPoints về 0?')) store.resetPoints(); }} />
+      </div>
+    </div>
+  );
+}
+
+// ── Section Gato AI Chatbot ───────────────────────────────
+function SGatoAI() {
+  const store = useAppStore();
+  const { currentScenarioId, externalBankLinked, geminiApiKey } = useAppStore(s => s.user);
+  const [apiKeyInput, setApiKeyInput] = useState(geminiApiKey || '');
+  const [testResult, setTestResult] = useState('');
+  const [testing, setTesting] = useState(false);
+
+  // Sync API Key input from store
+  useEffect(() => {
+    setApiKeyInput(geminiApiKey || '');
+  }, [geminiApiKey]);
+
+  async function handleTestKey() {
+    if (!apiKeyInput.trim()) {
+      setTestResult('Vui lòng nhập API Key trước.');
+      return;
+    }
+    setTesting(true);
+    setTestResult('');
+    try {
+      const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKeyInput}`;
+      const res = await fetch(endpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ contents: [{ parts: [{ text: 'Hello, respond with ONLY the word "OK".' }] }] })
+      });
+      if (res.ok) {
+        const data = await res.json();
+        const text = data.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
+        if (text) {
+          setTestResult(`✓ Kết nối thành công! Gemini trả lời: "${text}"`);
+        } else {
+          setTestResult('✗ Phản hồi API không đúng cấu trúc.');
+        }
+      } else {
+        const errText = await res.text();
+        setTestResult(`✗ Lỗi API: ${res.status}`);
+        console.error(errText);
+      }
+    } catch (err: any) {
+      setTestResult(`✗ Lỗi kết nối: ${err.message}`);
+    } finally {
+      setTesting(false);
+    }
+  }
+
+  function handleSaveKey() {
+    store.setGeminiApiKey(apiKeyInput.trim() || null);
+    alert('Đã cập nhật Gemini API Key!');
+  }
+
+  return (
+    <div>
+      <SH t="⚡ Gato AI Chatbot" />
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+        
+        {/* 1. API Key Input */}
+        <div>
+          <div style={{ fontSize: 11, color: '#9B96C8', marginBottom: 4 }}>Gemini API Key:</div>
+          <div style={{ display: 'flex', gap: 6 }}>
+            <input
+              type="password"
+              value={apiKeyInput}
+              onChange={(e) => setApiKeyInput(e.target.value)}
+              placeholder="Dán Gemini API Key ở đây"
+              style={{
+                flex: 1,
+                background: 'rgba(255,255,255,0.07)',
+                border: '1px solid rgba(255,255,255,0.1)',
+                borderRadius: 6,
+                padding: '6px 8px',
+                color: '#fff',
+                fontSize: 11,
+              }}
+            />
+            <SimBtn label="Lưu" variant="secondary" small onClick={handleSaveKey} />
+          </div>
+          <div style={{ display: 'flex', gap: 6, marginTop: 6 }}>
+            <SimBtn label={testing ? 'Đang test...' : 'Kiểm tra kết nối'} variant="ghost" small onClick={handleTestKey} />
+            <SimBtn label="Xóa Key" variant="danger" small onClick={() => { setApiKeyInput(''); store.setGeminiApiKey(null); }} />
+          </div>
+          {testResult && (
+            <div style={{ fontSize: 10, color: testResult.startsWith('✓') ? '#4ECDA4' : '#FF6B6B', marginTop: 6, whiteSpace: 'pre-line', maxWidth: 280 }}>
+              {testResult}
+            </div>
+          )}
+        </div>
+
+        {/* 2. Scenario Dropdown */}
+        <div>
+          <div style={{ fontSize: 11, color: '#9B96C8', marginBottom: 4 }}>Chọn kịch bản tài chính:</div>
+          <select
+            value={currentScenarioId}
+            onChange={(e) => store.setScenario(e.target.value)}
+            style={{
+              width: '100%',
+              background: 'rgba(255,255,255,0.07)',
+              border: '1px solid rgba(255,255,255,0.1)',
+              borderRadius: 6,
+              padding: '6px 8px',
+              color: '#fff',
+              fontSize: 11,
+            }}
+          >
+            {Object.values(AI_SCENARIOS).map((sc) => (
+              <option key={sc.id} value={sc.id} style={{ background: '#0D0B1F' }}>
+                {sc.name.split(' (')[0]}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        {/* 3. Link Bank Toggle */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'rgba(255,255,255,0.03)', padding: 8, borderRadius: 8 }}>
+          <span style={{ fontSize: 11, color: '#9B96C8' }}>Liên kết ngân hàng ngoài:</span>
+          <button
+            onClick={() => store.toggleExternalBank()}
+            style={{
+              background: externalBankLinked ? '#4ECDA4' : 'rgba(255,255,255,0.1)',
+              border: 'none',
+              borderRadius: 12,
+              padding: '4px 10px',
+              fontSize: 10,
+              fontWeight: 800,
+              color: externalBankLinked ? '#0D0B1F' : '#fff',
+              cursor: 'pointer',
+            }}
+          >
+            {externalBankLinked ? 'ĐÃ LIÊN KẾT' : 'CHƯA LIÊN KẾT'}
+          </button>
+        </div>
+
       </div>
     </div>
   );
@@ -410,6 +549,8 @@ export function SimDrawer({ open, onClose }: SimDrawerProps) {
             <div style={{ padding:'0 16px 24px', flex:1 }}>
               {/* Priority sections first */}
               <S2Points />
+              <HR />
+              <SGatoAI />
               <HR />
               <S7Scenarios />
               <HR />

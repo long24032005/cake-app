@@ -7,6 +7,7 @@
 import { LOCK_CYCLE_DAYS } from '../config';
 import type { User } from '../types';
 import { toISODate, addDays } from '../engine/pointEngine';
+import { AI_SCENARIOS } from '../services/gatoAIService';
 
 export const DEFAULT_USER_ID = 'mock_user_001';
 export const DEFAULT_DISPLAY_NAME = 'Cake User';
@@ -17,6 +18,11 @@ export const DEFAULT_DISPLAY_NAME = 'Cake User';
  */
 export function createInitialUser(): User {
   const today = toISODate(new Date());
+
+  // Chọn ngẫu nhiên kịch bản tài chính Gato AI
+  const scenarioIds = Object.keys(AI_SCENARIOS);
+  const randomId = scenarioIds[Math.floor(Math.random() * scenarioIds.length)];
+  const scenario = AI_SCENARIOS[randomId];
 
   return {
     userId: DEFAULT_USER_ID,
@@ -51,6 +57,21 @@ export function createInitialUser(): User {
       { instanceId: 'inst_8', itemId: 'voucher_50k', type: 'voucher', receivedAt: today, value: 50000, expiresAt: '2026-06-15' },
     ],
     notifications: [],
+
+    // Chatbot Gato AI
+    geminiApiKey: 'AIzaSyBwA2n8zMvnvbWucm50vT9dUDcr2uVcgv8', // API Key được cấp bởi user
+    currentScenarioId: randomId,
+    externalBankLinked: false,
+    chatHistory: [
+      {
+        id: `chat_init_${Date.now()}`,
+        sender: 'bot',
+        text: scenario.initialAiGreeting,
+        timestamp: new Date().toISOString(),
+      }
+    ],
+    transactions: scenario.transactions,
+    externalTransactions: scenario.externalTransactions,
   };
 }
 

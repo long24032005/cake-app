@@ -8,6 +8,8 @@ import { ProfileScreen } from './screens/ProfileScreen';
 import { MilestoneMapScreen } from './screens/MilestoneMapScreen';
 import { SimDrawer } from './components/SimDrawer';
 import { useAppStore } from './store/useAppStore';
+import { GatoFloatingBubble } from './components/GatoFloatingBubble';
+import { GatoAIChatScreen } from './screens/GatoAIChatScreen';
 
 // ── Tab definitions ────────────────────────────────────────
 const TABS = [
@@ -16,7 +18,7 @@ const TABS = [
   { id: 'inventory', label: 'Kho đồ',    icon: '🎒' },
   { id: 'profile',   label: 'Hồ sơ',     icon: '👤' },
 ] as const;
-type TabId = typeof TABS[number]['id'] | 'milestoneMap';
+type TabId = typeof TABS[number]['id'] | 'milestoneMap' | 'chat';
 
 function PlaceholderPage({ tab }: { tab: typeof TABS[number] }) {
   return (
@@ -101,6 +103,7 @@ export function PetApp({ onClose }: { onClose?: () => void }) {
       case 'inventory': return <InventoryScreen />;
       case 'profile': return <ProfileScreen />;
       case 'milestoneMap': return <MilestoneMapScreen onBack={() => setActiveTab('home')} />;
+      case 'chat': return <GatoAIChatScreen onBack={() => setActiveTab('home')} />;
       default:        return <PlaceholderPage tab={currentTab} />;
     }
   }
@@ -117,7 +120,13 @@ export function PetApp({ onClose }: { onClose?: () => void }) {
         </AnimatePresence>
       </main>
 
-      <BottomNav activeTab={activeTab} onTabChange={setActiveTab} />
+      {activeTab !== 'chat' && activeTab !== 'milestoneMap' && (
+        <BottomNav activeTab={activeTab} onTabChange={setActiveTab} />
+      )}
+
+      {activeTab === 'home' && (
+        <GatoFloatingBubble onClick={() => setActiveTab('chat')} />
+      )}
 
       {/* ── ⚡ DEMO badge when Sim Mode ever opened (spec D3) */}
       <AnimatePresence>

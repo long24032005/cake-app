@@ -54,6 +54,7 @@ const ITEM_LABELS: Record<string, string> = {
   wings_small: 'Cánh Nhỏ',
   sticker_pack_1: 'Sticker Pack',
   pet_frame_gold: 'Khung Pet Vàng',
+  voucher_interest_rate: 'Voucher Lãi Suất Đặc Biệt',
 };
 
 const ITEM_ICONS: Record<string, string> = {
@@ -79,6 +80,7 @@ const ITEM_ICONS: Record<string, string> = {
   bunny_hug: '🐰',
   bow_pink: '🎀',
   wings_small: '🦋',
+  voucher_interest_rate: '📈',
 };
 
 // Formatting date string
@@ -230,6 +232,7 @@ function InventoryCard({
 
   // Card specific rendering
   if (item.type === 'voucher') {
+    const isInterestRate = item.itemId === 'voucher_interest_rate';
     return (
       <div style={{
         background: 'linear-gradient(135deg, rgba(245,166,35,0.15), rgba(245,166,35,0.05))',
@@ -237,9 +240,9 @@ function InventoryCard({
         display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6,
         position: 'relative'
       }}>
-        <div style={{ fontSize: 24 }}>{icon}</div>
+        <div style={{ fontSize: 24 }}>{isInterestRate ? '📈' : icon}</div>
         <div style={{ fontSize: 13, fontWeight: 800, color: '#F5A623', textAlign: 'center' }}>
-          {(item.value ?? 0).toLocaleString('vi-VN')}đ
+          {isInterestRate ? `+${item.value}% Lãi suất` : `${(item.value ?? 0).toLocaleString('vi-VN')}đ`}
         </div>
         <div style={{ fontSize: 10, color: 'var(--color-text-secondary)', marginTop: 4 }}>
           Đã nhận: {item.receivedAt ? new Date(item.receivedAt).toLocaleDateString('vi-VN') : '---'}

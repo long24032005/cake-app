@@ -49,11 +49,11 @@ export function daysBetween(startISO: string, endISO: string): number {
 /**
  * Tính điểm hàng ngày của một sổ.
  * Spec: validBalance = currentBalance nếu status === "active", else 0
- *       dailyPoints = Math.floor(validBalance / 100_000)
+ *       dailyPoints = Math.floor(validBalance / 10_000)
  */
 export function calculateDailyPoints(book: SavingsBook): number {
   if (book.status !== 'active') return 0;
-  return Math.floor(book.currentBalance / 100_000);
+  return Math.floor(book.currentBalance / 10_000);
 }
 
 // ─────────────────────────────────────────────────────────────

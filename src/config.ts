@@ -10,7 +10,7 @@
 // ─────────────────────────────────────────────────────────────
 
 /** Cơ chế 1 — Tính điểm */
-export const POINTS_PER_100K_PER_DAY = 1;   // 1 điểm / 100k / ngày
+export const POINTS_PER_10K_PER_DAY = 1;   // 1 điểm / 10k / ngày
 export const LOCK_CYCLE_DAYS = 30;           // chu kỳ chốt điểm mặc định (ngày)
 export const CYCLE_COMPLETION_BONUS_RATE = 0.10;  // +10% điểm chu kỳ khi chốt thành công
 export const MATURITY_COMPLETION_BONUS_RATE = 0.20; // +20% tổng lockedPoints khi đáo hạn
