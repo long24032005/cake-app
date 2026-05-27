@@ -244,30 +244,7 @@ export function GatoAIChatScreen({ onBack }: Props) {
             paddingBottom: 4,
           }}
         >
-          {/* Nút liên kết ngân hàng (Hiện nổi bật nếu chưa liên kết) */}
-          {!externalBankLinked && (
-            <button
-              id="btn-link-external-bank"
-              onClick={() => setConsentOpen(true)}
-              style={{
-                flexShrink: 0,
-                padding: '6px 14px',
-                borderRadius: 20,
-                background: 'rgba(91,200,245,0.15)',
-                border: '1.5px solid rgba(91,200,245,0.5)',
-                color: '#5BC8F5',
-                fontSize: 12,
-                fontWeight: 800,
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                gap: 4,
-                boxShadow: '0 0 10px rgba(91,200,245,0.15)',
-              }}
-            >
-              🔗 Liên kết {scenario.externalBankName}
-            </button>
-          )}
+
 
           {scenario.quickReplies.map((qrText) => (
             <button

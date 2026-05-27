@@ -116,7 +116,7 @@ function getLocalFallbackResponse(message: string, scenarioId: string, linked: b
       if (!linked) {
         return `📊 **Đánh giá Sức khỏe Tài chính:**
 Hiện tại, tài khoản Cake của bạn chưa ghi nhận bất kỳ dòng tiền tiết kiệm hay tích lũy nào. Để thực hiện phân tích sâu sắc và tìm ra nguyên nhân gốc rễ, chúng tôi cần đối chiếu cơ cấu thu nhập của bạn.
-👉 **Khuyến nghị**: Hãy nhấn nút **"Liên kết ngân hàng ngoài"** (Techcombank) để chúng tôi đồng bộ hóa dòng tiền lương đầu vào và đưa ra giải pháp tối ưu hóa.`;
+👉 **Khuyến nghị**: Hãy cấp quyền truy cập lịch sử giao dịch ngân hàng ngoài để chúng tôi đồng bộ hóa dòng tiền lương đầu vào và đưa ra giải pháp tối ưu hóa.`;
       } else {
         return `📊 **Báo cáo Phân tích Tài chính Hợp nhất (Cake + Techcombank):**
 • **Thu nhập cố định (Lương)**: 15.000.000đ (Techcombank, ngày 5 hàng tháng).
@@ -143,7 +143,7 @@ Bạn đang duy trì một phong độ tích lũy xuất sắc và kỷ luật:
       if (!linked) {
         return `📊 **Cố vấn Tối ưu hóa Tiền nhàn rỗi:**
 Hệ thống ghi nhận bạn đang thực hiện kỷ luật tiết kiệm rất tốt trên Cake. Để đưa ra phương án phân bổ danh mục đầu tư/tiết kiệm hiệu quả nhất, chúng tôi cần đánh giá số dư khả dụng ở các tài khoản khác.
-👉 **Khuyến nghị**: Hãy nhấn **"Liên kết ngân hàng ngoài"** (Vietcombank) để Gato AI phân tích sâu nguồn vốn khả dụng của bạn.`;
+👉 **Khuyến nghị**: Hãy cấp quyền truy cập lịch sử giao dịch ngân hàng ngoài để Gato AI phân tích sâu nguồn vốn khả dụng của bạn.`;
       } else {
         return `📊 **Phương án Tối ưu hóa Vốn nhàn rỗi lũy kế (Cake + Vietcombank):**
 • **Số dư vãng lai tại Vietcombank**: 8.000.000đ (đang nhận lãi suất không kỳ hạn cực thấp ~0.1%/năm).
@@ -167,7 +167,7 @@ Hệ thống ghi nhận bạn đang thực hiện kỷ luật tiết kiệm rấ
       if (!linked) {
         return `📊 **Cố vấn Quản lý Vốn Lưu động:**
 Để đề xuất giải pháp chia rổ tài sản và phân bổ kỳ hạn tối ưu giúp doanh nghiệp vừa sinh lời vừa đảm bảo thanh khoản, chúng tôi cần dữ liệu dòng tiền chi tiết từ tài khoản chính.
-👉 **Khuyến nghị**: Vui lòng nhấn **"Liên kết ngân hàng ngoài"** (BIDV) để đồng bộ hóa.`;
+👉 **Khuyến nghị**: Vui lòng cấp quyền truy cập lịch sử giao dịch ngân hàng ngoài để đồng bộ hóa.`;
       } else {
         return `📊 **Phương án Tối ưu hóa Dòng tiền Liên ngân hàng (Cake + BIDV):**
 Do tính chất kinh doanh cần thanh toán công nợ nhà cung cấp liên tục, chúng tôi đề xuất chiến lược quản trị vốn như sau:
@@ -180,8 +180,8 @@ Do tính chất kinh doanh cần thanh toán công nợ nhà cung cấp liên t�
   // Phản hồi chung
   if (query.includes('liên kết') || query.includes('ngân hàng ngoài')) {
     return `📊 **Hướng dẫn Liên kết Ngân hàng ngoài qua Open Banking:**
-Việc liên kết tài khoản ngân hàng ngoài (Vietcombank, Techcombank, BIDV) giúp Gato AI hợp nhất dữ liệu giao dịch hai chiều dưới sự đồng ý của bạn.
-Từ đó, hệ thống có thể tính toán chính xác tỷ lệ thu nhập/chi tiêu và tự động đưa ra các cảnh báo dòng tiền thông thái nhất. Vui lòng bấm nút **"Liên kết ngân hàng"** để tiến hành.`;
+Việc liên kết tài khoản ngân hàng ngoài giúp Gato AI hợp nhất dữ liệu giao dịch dưới sự đồng ý của bạn.
+Từ đó, hệ thống có thể tính toán chính xác tỷ lệ thu nhập/chi tiêu và tự động đưa ra các cảnh báo dòng tiền thông thái nhất. Vui lòng cấp quyền truy cập lịch sử giao dịch để tiến hành.`;
   }
 
   return `📊 **Xin chào! Tôi là Gato AI - Cố vấn Tài chính Cá nhân của bạn.**
@@ -244,7 +244,7 @@ ${extTxStr}
 Quy tắc phân tích chuyên sâu:
 1. Nếu người dùng CHƯA LIÊN KẾT ngân hàng ngoài:
    - Hãy chỉ ra hạn chế khi chỉ phân tích trên Cake (ví dụ: chỉ thấy dòng tiền chi tiêu nhỏ lẻ, chưa thấy bức tranh thu nhập tổng thể).
-   - Đưa ra lời khuyên chuyên môn về tầm quan trọng của việc hợp nhất dòng tiền qua Open Banking để lập kế hoạch tài chính toàn diện. Gợi ý rõ ràng người dùng nhấn nút "Liên kết ngân hàng" để tiếp tục.
+   - Đưa ra lời khuyên chuyên môn về tầm quan trọng của việc hợp nhất dòng tiền qua Open Banking để lập kế hoạch tài chính toàn diện. Gợi ý rõ ràng người dùng cấp quyền truy cập lịch sử giao dịch để tiếp tục.
 2. Nếu người dùng ĐÃ LIÊN KẾT ngân hàng ngoài:
    - Thực hiện phân tích chuyên sâu dữ liệu đa ngân hàng. Tính toán tỷ lệ chi tiêu cụ thể (ví dụ: ăn uống chiếm bao nhiêu % thu nhập, chi tiêu thiết yếu vs không thiết yếu).
    - Đánh giá sức khỏe tài chính: Chỉ ra các điểm yếu lớn (ví dụ: tốc độ cạn kiệt số dư sau ngày nhận lương, hoặc dòng tiền nhàn rỗi lớn không sinh lời tại tài khoản vãng lai ở ngân hàng Vietcombank/BIDV/Techcombank).

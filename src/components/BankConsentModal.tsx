@@ -6,15 +6,13 @@ import { AI_SCENARIOS } from '../services/gatoAIService';
 interface Props {
   isOpen: boolean;
   onClose: () => void;
+  onAgreeSuccess?: () => void;
 }
 
-export function BankConsentModal({ isOpen, onClose }: Props) {
+export function BankConsentModal({ isOpen, onClose, onAgreeSuccess }: Props) {
   const user = useAppStore((s) => s.user);
   const linkExternalBank = useAppStore((s) => s.linkExternalBank);
   const [loading, setLoading] = useState(false);
-
-  const scenario = AI_SCENARIOS[user.currentScenarioId] || AI_SCENARIOS.impulsive_spender;
-  const bankName = scenario.externalBankName;
 
   async function handleAgree() {
     setLoading(true);
@@ -23,6 +21,9 @@ export function BankConsentModal({ isOpen, onClose }: Props) {
     linkExternalBank();
     setLoading(false);
     onClose();
+    if (onAgreeSuccess) {
+      onAgreeSuccess();
+    }
   }
 
   if (!isOpen) return null;
@@ -99,7 +100,7 @@ export function BankConsentModal({ isOpen, onClose }: Props) {
               `}</style>
               <div style={{ fontSize: 15, fontWeight: 700, color: '#fff' }}>Đang kết nối Open Banking API...</div>
               <div style={{ fontSize: 12, color: 'var(--color-text-secondary)', maxWidth: 260 }}>
-                Thiết lập kênh kết nối an toàn với máy chủ của {bankName} để đồng bộ lịch sử giao dịch.
+                Thiết lập kênh kết nối an toàn với máy chủ các ngân hàng bạn đang sử dụng để đồng bộ lịch sử giao dịch.
               </div>
             </div>
           ) : (
@@ -108,7 +109,7 @@ export function BankConsentModal({ isOpen, onClose }: Props) {
               <div style={{ textAlign: 'center' }}>
                 <div style={{ fontSize: 32, marginBottom: 8 }}>🔗</div>
                 <h3 style={{ fontSize: 18, fontWeight: 900, color: '#fff', margin: 0 }}>
-                  Liên kết tài khoản {bankName}
+                  Hợp nhất tài khoản đa ngân hàng
                 </h3>
               </div>
 
@@ -128,14 +129,14 @@ export function BankConsentModal({ isOpen, onClose }: Props) {
               >
                 Bằng việc nhấn <strong>"Đồng ý cấp quyền"</strong>, bạn đồng ý cho phép <strong>Gato AI (ứng dụng Cake)</strong> thực hiện:
                 <br />
-                1. Đọc và thu thập thông tin số dư tài khoản thanh toán và lịch sử giao dịch gần nhất của bạn tại ngân hàng liên kết <strong>{bankName}</strong>.
+                1. Đọc và thu thập thông tin số dư tài khoản thanh toán và lịch sử giao dịch gần nhất của bạn tại tất cả các ngân hàng liên kết bạn đang sử dụng.
                 <br />
                 2. Phân tích các thói quen chi tiêu, phân loại giao dịch (Ăn uống, Mua sắm, Di chuyển...) để sinh báo cáo tài chính cá nhân hóa.
                 <br />
                 3. Đưa ra các lời khuyên, cảnh báo và lập kế hoạch tài chính tối ưu cho bạn.
                 <br />
                 <br />
-                <em>Cam kết bảo mật:</em> Thông tin của bạn được truyền tải qua giao thức mã hóa an toàn Open Banking API và bảo mật tuyệt đối theo tiêu chuẩn ngân hàng số. Chúng tôi KHÔNG lưu trữ mật khẩu đăng nhập tài khoản liên kết của bạn.
+                <em>Cam kết bảo mật:</em> Thông tin của bạn được truyền tải qua giao thức mã hóa an toàn Open Banking API và bảo mật tuyệt đối theo tiêu chuẩn ngân hàng số. Chúng tôi KHÔNG lưu trữ mật khẩu đăng nhập các tài khoản liên kết của bạn.
               </div>
 
               {/* Buttons */}

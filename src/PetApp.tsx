@@ -10,6 +10,7 @@ import { SimDrawer } from './components/SimDrawer';
 import { useAppStore } from './store/useAppStore';
 import { GatoFloatingBubble } from './components/GatoFloatingBubble';
 import { GatoAIChatScreen } from './screens/GatoAIChatScreen';
+import { BankConsentModal } from './components/BankConsentModal';
 
 // ── Tab definitions ────────────────────────────────────────
 const TABS = [
@@ -62,6 +63,8 @@ export function PetApp({ onClose }: { onClose?: () => void }) {
   const pendingMilestone   = useAppStore(s => s.pendingMilestonePopup);
   const pendingBlindBagItem = useAppStore(s => s.pendingBlindBagItem);
   const dismissMilestone   = useAppStore(s => s.dismissMilestonePopup);
+  const user               = useAppStore(s => s.user);
+  const [consentOpen, setConsentOpen] = useState(false);
 
   // ── Activate via URL param ?sim=true ─────────────────────
   useEffect(() => {
@@ -125,7 +128,13 @@ export function PetApp({ onClose }: { onClose?: () => void }) {
       )}
 
       {activeTab === 'home' && (
-        <GatoFloatingBubble onClick={() => setActiveTab('chat')} />
+        <GatoFloatingBubble onClick={() => {
+          if (user?.externalBankLinked) {
+            setActiveTab('chat');
+          } else {
+            setConsentOpen(true);
+          }
+        }} />
       )}
 
       {/* ── ⚡ DEMO badge when Sim Mode ever opened (spec D3) */}
@@ -167,6 +176,13 @@ export function PetApp({ onClose }: { onClose?: () => void }) {
 
       {/* Simulation Drawer */}
       <SimDrawer open={simOpen} onClose={() => setSimOpen(false)} />
+
+      {/* Bank Consent Modal */}
+      <BankConsentModal 
+        isOpen={consentOpen} 
+        onClose={() => setConsentOpen(false)} 
+        onAgreeSuccess={() => setActiveTab('chat')} 
+      />
 
       {/* Global Exit Button */}
       {onClose && activeTab !== 'milestoneMap' && (
