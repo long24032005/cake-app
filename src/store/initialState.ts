@@ -59,7 +59,7 @@ export function createInitialUser(): User {
     notifications: [],
 
     // Chatbot Gato AI
-    geminiApiKey: 'AIzaSyBwA2n8zMvnvbWucm50vT9dUDcr2uVcgv8', // API Key được cấp bởi user
+    geminiApiKey: null, // Nhập API Key ở Sim Drawer để bảo mật
     currentScenarioId: randomId,
     externalBankLinked: false,
     chatHistory: [
