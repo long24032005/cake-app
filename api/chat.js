@@ -18,17 +18,28 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { contents, systemInstruction, generationConfig } = req.body;
+    let body = req.body;
+    if (typeof body === 'string') {
+      try {
+        body = JSON.parse(body);
+      } catch (e) {
+        console.error('[API Chat] Failed to parse request body as JSON:', e);
+      }
+    }
+    const { contents, systemInstruction, generationConfig } = body || {};
     
     // Read the secret key from environment variables on Vercel or headers
-    const apiKeysRaw = process.env.GEMINI_API_KEY || req.headers['x-api-key'];
+    const apiKeysRaw = process.env.GEMINI_API_KEY || req.headers['x-api-key'] || req.headers['X-Api-Key'];
+
+    console.log('[API Chat] Received request. Contents count:', contents?.length, 'System instruction length:', systemInstruction?.parts?.[0]?.text?.length);
+    console.log('[API Chat] API keys config:', apiKeysRaw ? `Found (length: ${apiKeysRaw.length})` : 'Not found');
 
     if (!apiKeysRaw) {
       return res.status(400).json({ error: 'Gemini API Key is missing. Please set GEMINI_API_KEY environment variable on Vercel.' });
     }
 
     // Split comma-separated keys
-    const apiKeys = apiKeysRaw.split(',').map(k => k.trim()).filter(Boolean);
+    const apiKeys = String(apiKeysRaw).split(',').map(k => k.trim()).filter(Boolean);
     
     let lastError = null;
     let data = null;

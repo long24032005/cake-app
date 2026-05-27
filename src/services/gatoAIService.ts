@@ -260,7 +260,11 @@ Quy tắc phân tích chuyên sâu:
 
   try {
     // 1. Thử gọi qua Vercel Proxy API (để ẩn API Key trên Vercel)
-    console.log('[Gato AI] Thử kết nối qua Vercel Proxy API...');
+    console.log('[Gato AI] Thử kết nối qua Vercel Proxy API /api/chat...');
+    console.log('[Gato AI] Request Payload:', JSON.stringify({
+      contents,
+      systemInstruction: { parts: [{ text: systemInstruction.substring(0, 100) + '...' }] }
+    }, null, 2));
     let data;
     let success = false;
     
@@ -286,12 +290,13 @@ Quy tắc phân tích chuyên sâu:
       if (proxyResponse.ok) {
         data = await proxyResponse.json();
         success = true;
-        console.log('[Gato AI] Kết nối qua Proxy API thành công.');
+        console.log('[Gato AI] Kết nối qua Proxy API thành công:', data);
       } else {
-        console.warn(`[Gato AI] Proxy API trả về mã lỗi: ${proxyResponse.status}`);
+        const errText = await proxyResponse.text();
+        console.error(`[Gato AI] Proxy API trả về mã lỗi: ${proxyResponse.status}`, errText);
       }
-    } catch (e) {
-      console.warn('[Gato AI] Không thể kết nối với Proxy API (đang chạy local hoặc dev server).');
+    } catch (e: any) {
+      console.warn('[Gato AI] Không thể kết nối với Proxy API (đang chạy local hoặc dev server hoặc lỗi mạng):', e.message);
     }
 
     // 2. Nếu Proxy không khả dụng hoặc lỗi, gọi trực tiếp Google API bằng key client-side (chỉ khi có apiKey)

@@ -8,4 +8,13 @@ export default defineConfig({
     react(),
     tailwindcss(),
   ],
+  server: {
+    proxy: {
+      '/api': {
+        target: 'https://cake-app-tau.vercel.app',
+        changeOrigin: true,
+        secure: false,
+      }
+    }
+  }
 })
